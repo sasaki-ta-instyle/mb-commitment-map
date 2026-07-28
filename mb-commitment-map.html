@@ -1011,11 +1011,10 @@
     }
     function resolve(ref) {
       if (!ref) return [];
-      // C-xxx (case-insensitive prefix c-)
-      if (/^[cC]-/.test(ref)) {
-        const it = detailByRecId.get(ref);
-        return it ? [it] : [];
-      }
+      // ID prefix (C-101 / M-102 / X-xxx 等 なんでも)。まず完全一致で試す
+      const direct = detailByRecId.get(ref);
+      if (direct) return [direct];
+      // <dept>/<strategy or outcome>
       if (ref.includes('/')) {
         const hitS = strategyByKey.get(ref);
         if (hitS) return hitS;
