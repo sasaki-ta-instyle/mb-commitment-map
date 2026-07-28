@@ -158,9 +158,10 @@
   .btn {
     display: inline-flex; align-items: center; gap: 6px;
     padding: 6px 14px; font-size: 12px; font-weight: 500; letter-spacing: 0.01em;
+    line-height: 1.4;   /* <a> と <button> の高さを揃える (body の line-height 継承を上書き) */
     border-radius: var(--r-pill); cursor: pointer; border: none;
     transition: all var(--ease-out); font-family: inherit;
-    text-decoration: none;
+    text-decoration: none; white-space: nowrap;
     background: rgba(246,250,252,.65);
     backdrop-filter: blur(12px);
     color: var(--color-text);
