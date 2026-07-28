@@ -1462,7 +1462,8 @@
     // --- Items (outcome / strategy / detail) — outcome が最も淡く、dept に向かって濃くなる ---
     layout.items.forEach(it => {
       const fill = withAlpha(it.color, it.kind === 'outcome' ? 0.40 : it.kind === 'strategy' ? 0.60 : 0.80);
-      const hasUrl = !!(it.rec && it.rec.url);
+      const rawUrl = (it.rec && it.rec.url ? String(it.rec.url).trim() : '');
+      const hasUrl = rawUrl.length > 0;
       $svg.appendChild(svgEl('rect', {
         x: it.x, y: it.y, width: it.w, height: it.h,
         rx: 8, class: 'item-box' + (hasUrl ? ' is-linked' : ''), fill,
@@ -1553,11 +1554,17 @@
       rect.addEventListener('mouseenter', (e) => { showPopover(e, item); _activateXLinks(id, true); });
       rect.addEventListener('mousemove', (e) => positionPopover(e));
       rect.addEventListener('mouseleave', () => { hidePopover(); _activateXLinks(id, false); });
-      const url = item.rec && item.rec.url;
-      if (url) {
+      const rawUrl = (item.rec && item.rec.url ? String(item.rec.url).trim() : '');
+      if (rawUrl) {
         rect.addEventListener('click', (e) => {
           e.preventDefault();
-          window.open(url, '_blank', 'noopener,noreferrer');
+          // スキームが無ければ https:// を補う
+          let openUrl = rawUrl;
+          if (!/^([a-z][a-z0-9+.-]*:|\/\/)/i.test(openUrl)) {
+            openUrl = 'https://' + openUrl;
+          }
+          console.log('[commitment-map] open link:', openUrl);
+          window.open(openUrl, '_blank', 'noopener,noreferrer');
         });
       }
     });
@@ -1612,9 +1619,11 @@
       html += kvRaw('進捗', _progressBadge(item.rec.progress || '—'));
       html += kv('最終編集者', item.rec.editor || '—');
       html += kv('更新日', normalizeDate(item.rec.updated_at) || '—');
-      if (item.rec.url) {
-        const safeUrl = escapeHtml(item.rec.url);
-        html += kvRaw('リンク', `<a href="${safeUrl}" target="_blank" rel="noopener noreferrer" class="pop-link">${safeUrl}</a>`);
+      const popUrl = String(item.rec.url || '').trim();
+      if (popUrl) {
+        let hrefUrl = popUrl;
+        if (!/^([a-z][a-z0-9+.-]*:|\/\/)/i.test(hrefUrl)) hrefUrl = 'https://' + hrefUrl;
+        html += kvRaw('リンク', `<a href="${escapeHtml(hrefUrl)}" target="_blank" rel="noopener noreferrer" class="pop-link">${escapeHtml(popUrl)}</a>`);
       }
     } else {
       // 成果 / 作戦: 配下の詳細レコードを集計
