@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>コミットメントマップ 使い方 | メビウス製薬</title>
+<meta name="description" content="mb-commitment-map の使い方マニュアル。ダッシュボードの見方 / スプシ構成 / 編集手順 / ハマりポイント">
+<meta property="og:title" content="コミットメントマップ 使い方">
+<meta property="og:description" content="mb-commitment-map の使い方マニュアル">
+<meta property="og:image" content="https://mb.instyle.group/_shared/static/ogp.jpg">
+<link rel="icon" type="image/png" href="https://mb.instyle.group/_shared/static/favicon.png">
+
+<style>
+  :root {
+    /* Mebius Liquid Glass tokens (mb-commitment-map と同じ) */
+    --color-bg: #EEF2F3;
+    --color-surface: #FAFCFC;
+    --color-text: #1E1E1E;
+    --color-text-sub: #4A5658;
+    --color-text-muted: #7A8688;
+    --color-border: rgba(30,30,30,0.10);
+    --color-accent: #00ABBF;
+    --color-accent-dark: #007A88;
+    --color-warm: #F5D944;
+    --font-sans: 'Gen Interface JP', 'Helvetica Neue', Arial, sans-serif;
+    --font-display: 'Gen Interface JP Display', 'Helvetica Neue', Arial, sans-serif;
+    --r: 14px;
+    --r-sm: 10px;
+    --glass-blur-sm: blur(10px) saturate(1.05);
+    --glass-blur-md: blur(18px) saturate(1.1);
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: var(--color-bg); color: var(--color-text); font-family: var(--font-sans); font-size: 14px; line-height: 1.65; }
+
+  /* scene-bg (liquid glass の下地) */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background:
+      radial-gradient(ellipse 900px 700px at 15% 20%, rgba(0,171,191,0.10), transparent 60%),
+      radial-gradient(ellipse 800px 600px at 85% 80%, rgba(245,217,68,0.08), transparent 60%),
+      linear-gradient(180deg, #F0F4F5 0%, #E8EEEF 100%);
+    z-index: -1;
+  }
+
+  .page {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 24px 20px 80px;
+  }
+
+  /* Header */
+  .site-header {
+    display: flex; align-items: center; gap: 16px;
+    padding: 16px 20px;
+    background: rgba(255,255,255,0.72);
+    backdrop-filter: var(--glass-blur-md);
+    -webkit-backdrop-filter: var(--glass-blur-md);
+    border: 1px solid rgba(255,255,255,0.72);
+    border-radius: var(--r);
+    box-shadow: 0 4px 20px rgba(30,30,30,0.06), inset 0 1px 0 rgba(255,255,255,0.9);
+    margin-bottom: 20px;
+  }
+  .site-header .brand img { height: 14px; display: block; }
+  .site-header h1 {
+    font-family: var(--font-display);
+    font-size: 16px;
+    font-weight: 600;
+    margin: 0;
+    letter-spacing: 0.02em;
+  }
+  .site-header .back {
+    margin-left: auto;
+    color: var(--color-accent);
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 6px 12px;
+    border: 1px solid var(--color-accent);
+    border-radius: var(--r-sm);
+    background: rgba(255,255,255,0.6);
+    transition: background 120ms ease;
+  }
+  .site-header .back:hover { background: var(--color-accent); color: white; }
+
+  /* TOC */
+  .toc {
+    background: rgba(255,255,255,0.55);
+    backdrop-filter: var(--glass-blur-sm);
+    -webkit-backdrop-filter: var(--glass-blur-sm);
+    border: 1px solid rgba(255,255,255,0.72);
+    border-radius: var(--r);
+    padding: 18px 24px;
+    margin-bottom: 28px;
+  }
+  .toc h2 { margin: 0 0 10px 0; font-size: 12px; font-weight: 600; color: var(--color-text-sub); letter-spacing: 0.08em; text-transform: uppercase; }
+  .toc ol { margin: 0; padding-left: 20px; }
+  .toc li { margin: 4px 0; }
+  .toc a { color: var(--color-text); text-decoration: none; border-bottom: 1px dotted var(--color-border); }
+  .toc a:hover { color: var(--color-accent); border-bottom-color: var(--color-accent); }
+
+  /* Sections */
+  section {
+    background: rgba(255,255,255,0.65);
+    backdrop-filter: var(--glass-blur-sm);
+    -webkit-backdrop-filter: var(--glass-blur-sm);
+    border: 1px solid rgba(255,255,255,0.72);
+    border-radius: var(--r);
+    padding: 24px 28px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 12px rgba(30,30,30,0.04), inset 0 1px 0 rgba(255,255,255,0.9);
+  }
+  section h2 {
+    font-family: var(--font-display);
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0 0 8px 0;
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--color-accent);
+    display: inline-block;
+    color: var(--color-text);
+  }
+  section h3 {
+    font-family: var(--font-display);
+    font-size: 15px;
+    font-weight: 600;
+    margin: 24px 0 8px 0;
+    color: var(--color-text);
+  }
+  section h3::before {
+    content: '';
+    display: inline-block;
+    width: 8px; height: 8px;
+    background: var(--color-accent);
+    border-radius: 2px;
+    margin-right: 8px;
+    vertical-align: middle;
+  }
+  p { margin: 8px 0; }
+  ul, ol { margin: 8px 0; padding-left: 22px; }
+  li { margin: 4px 0; }
+
+  code {
+    background: rgba(0,171,191,0.10);
+    color: var(--color-accent-dark);
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-family: 'SF Mono', Menlo, monospace;
+    font-size: 12.5px;
+  }
+  pre {
+    background: #1E1E1E;
+    color: #EAEAEA;
+    padding: 14px 18px;
+    border-radius: var(--r-sm);
+    overflow-x: auto;
+    font-family: 'SF Mono', Menlo, monospace;
+    font-size: 12.5px;
+    line-height: 1.5;
+  }
+  pre code { background: transparent; color: inherit; padding: 0; }
+
+  /* Table */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 12px 0;
+    font-size: 13px;
+  }
+  th, td {
+    padding: 8px 12px;
+    text-align: left;
+    border-bottom: 1px solid var(--color-border);
+    vertical-align: top;
+  }
+  thead th {
+    background: rgba(0,171,191,0.06);
+    font-weight: 600;
+    color: var(--color-text-sub);
+    font-size: 12px;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    border-bottom: 2px solid var(--color-accent);
+  }
+  td code { white-space: nowrap; }
+
+  /* Callout */
+  .callout {
+    padding: 14px 18px;
+    border-radius: var(--r-sm);
+    margin: 12px 0;
+    border-left: 3px solid;
+  }
+  .callout.note { background: rgba(0,171,191,0.06); border-color: var(--color-accent); }
+  .callout.warn { background: rgba(245,72,77,0.06); border-color: #E5484D; }
+  .callout.tip  { background: rgba(245,217,68,0.10); border-color: #C7B01F; }
+  .callout strong { display: block; font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 4px; color: var(--color-text-sub); }
+
+  /* Dept color swatch */
+  .swatch {
+    display: inline-block;
+    width: 12px; height: 12px;
+    border-radius: 3px;
+    vertical-align: middle;
+    margin-right: 6px;
+    border: 1px solid rgba(0,0,0,0.1);
+  }
+
+  a { color: var(--color-accent-dark); }
+  a:hover { color: var(--color-accent); }
+
+  hr { border: none; border-top: 1px solid var(--color-border); margin: 20px 0; }
+
+  /* Mobile */
+  @media (max-width: 700px) {
+    .site-header { flex-wrap: wrap; }
+    .site-header h1 { font-size: 14px; }
+    .page { padding: 16px 12px 60px; }
+    section { padding: 20px 18px; }
+    table { font-size: 12px; }
+    th, td { padding: 6px 8px; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header class="site-header">
+    <a class="brand" href="https://instyle.group" aria-label="INSTYLE GROUP">
+      <img src="https://mb.instyle.group/_shared/static/logo.svg" alt="INSTYLE GROUP" onerror="this.style.display='none'">
+    </a>
+    <h1>コミットメントマップ 使い方</h1>
+    <a class="back" href="mb-commitment-map.html">← 本編にもどる</a>
+  </header>
+
+  <div class="toc">
+    <h2>目次</h2>
+    <ol>
+      <li><a href="#view">1. ダッシュボードの見方</a></li>
+      <li><a href="#sheet">2. スプシの構成 (タブ一覧)</a></li>
+      <li><a href="#columns">3. コミットメントリスト 各列の意味</a></li>
+      <li><a href="#ops">4. よくある操作</a></li>
+      <li><a href="#pitfalls">5. ハマりポイント</a></li>
+      <li><a href="#faq">6. FAQ</a></li>
+    </ol>
+  </div>
+
+  <section id="view">
+    <h2>1. ダッシュボードの見方</h2>
+    <p>本編 URL: <a href="https://mb.instyle.group/html/mb-commitment-map.html">https://mb.instyle.group/html/mb-commitment-map.html</a></p>
+
+    <h3>2 タブ構成</h3>
+    <ul>
+      <li><strong>コミットメントマップ</strong>: 左右対称のあみだくじ図。中央に部署 (モール / 本店 / CS / 商品)、左に定量目標、右に定性目標がぶら下がる</li>
+      <li><strong>マイルストーン</strong>: 作戦ごとの月次目標・実績・達成率をテーブル表示</li>
+    </ul>
+
+    <h3>部署カラー</h3>
+    <p>部署ごとに色が割り当てられている。線の色でどの部署の指標か一目でわかる。</p>
+    <ul>
+      <li><span class="swatch" style="background:#39D353"></span>モール (マーケ:モール)</li>
+      <li><span class="swatch" style="background:#F5D944"></span>本店 (マーケ:本店)</li>
+      <li><span class="swatch" style="background:#E5484D"></span>CS</li>
+      <li><span class="swatch" style="background:#7CE2FE"></span>商品</li>
+    </ul>
+    <p>色は <code>凡例</code> タブで変更できる。</p>
+
+    <h3>ボックスの階層</h3>
+    <p>左右対称に <strong>成果 → 作戦 → 詳細</strong> の順で並ぶ。中央の部署ノードから外側に広がる形。</p>
+    <ul>
+      <li><strong>成果</strong> (最も淡い) — 部署単位の中核成果。複数の作戦が紐付く</li>
+      <li><strong>作戦</strong> (中間) — 成果を達成するための中目標。複数の詳細が紐付く</li>
+      <li><strong>詳細</strong> (最も濃い) — 実行単位の小タスク。1 行 = 1 詳細</li>
+    </ul>
+
+    <h3>マウス操作</h3>
+    <table>
+      <thead><tr><th>操作</th><th>効果</th></tr></thead>
+      <tbody>
+        <tr><td>hover (ボックス上)</td><td>詳細ポップオーバー表示 (担当・期日・進捗・リンク等)</td></tr>
+        <tr><td>hover (ボックス上)</td><td>その要素に繋がる<strong>連携線</strong>が浮かび上がる (アクセント色の破線)</td></tr>
+        <tr><td>click (ボックス上、URL がある場合)</td><td>別窓で URL を開く。カーソルが指マークになる要素だけクリック可能</td></tr>
+        <tr><td>↻ 再読込</td><td>スプシの最新を取り直して再描画</td></tr>
+        <tr><td>スプシを開く ↗</td><td>編集用スプシを別窓で開く</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section id="sheet">
+    <h2>2. スプシの構成 (タブ一覧)</h2>
+    <p>スプシは <strong>Sheets を master、HTML を読取専用ビュー</strong> として動く。編集はスプシで完結し、HTML はキャッシュなしで最新を fetch する。</p>
+
+    <table>
+      <thead><tr><th>タブ名</th><th>役割</th><th>編集頻度</th></tr></thead>
+      <tbody>
+        <tr><td><strong>コミットメントリスト</strong></td><td>本体データ。1 行 = 1 詳細 (小タスク)</td><td>頻繁</td></tr>
+        <tr><td><strong>戦略的フォーカス</strong></td><td>左右の大目標と列ラベルを保持 (2 行のみ)</td><td>稀</td></tr>
+        <tr><td><strong>凡例</strong></td><td>部署カラー (4 部署 × 色コード)</td><td>ほぼ変えない</td></tr>
+        <tr><td><strong>マイルストーン</strong></td><td>作戦ごとの月次目標/実績を保持</td><td>月次</td></tr>
+        <tr><td><strong>連携</strong></td><td>部署をまたぐ関連 (別タブ版、コミットメントリストの 連携 列と併用可)</td><td>随時</td></tr>
+        <tr><td><code>_members</code></td><td>担当者プルダウンの正本 (hidden)</td><td>人員変更時</td></tr>
+        <tr><td><code>_progress</code></td><td>進捗プルダウンの正本 (hidden)</td><td>ほぼ変えない</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout note">
+      <strong>命名規則</strong>
+      <code>_</code> プレフィックス タブは Google Sheets の UI 上で hidden 表示にしている。プルダウンの選択肢正本として使う。編集する時はタブ右クリック → 「シートの再表示」で出せる。
+    </div>
+  </section>
+
+  <section id="columns">
+    <h2>3. コミットメントリスト 各列の意味</h2>
+    <table>
+      <thead><tr><th>列</th><th>ヘッダー名</th><th>型</th><th>説明</th></tr></thead>
+      <tbody>
+        <tr><td>A</td><td><code>ID</code></td><td>text</td><td><code>C-001</code> / <code>M-101</code> など連番。連携で参照するので必ず入れる</td></tr>
+        <tr><td>B</td><td><code>サイド</code></td><td>列挙</td><td><code>定量</code> / <code>定性</code>。左サイド / 右サイド</td></tr>
+        <tr><td>C</td><td><code>部署</code></td><td>列挙</td><td><code>モール</code> / <code>本店</code> / <code>CS</code> / <code>商品</code></td></tr>
+        <tr><td>D</td><td><code>サブ部署</code></td><td>text</td><td>部署に紐付くサブ区分 (例: <code>新規定期</code>, <code>Amazon</code>, <code>解約率</code>)</td></tr>
+        <tr><td>E</td><td><code>成果</code></td><td>text</td><td>部署単位の中核成果。同じ文言の成果は自動で 1 ノードにマージされる</td></tr>
+        <tr><td>F</td><td><code>作戦</code></td><td>text</td><td>成果を達成するための中目標</td></tr>
+        <tr><td>G</td><td><code>詳細</code></td><td>text</td><td>実行単位の小タスク本体</td></tr>
+        <tr><td>H</td><td><code>リンク</code> / <code>url</code></td><td>URL</td><td>Notion / Google Drive 等の外部リンク。詳細ボックスをクリックで別窓オープン。空ならクリック不可</td></tr>
+        <tr><td>I</td><td><code>連携</code></td><td>text</td><td>部署をまたいで繋げたい先を列挙 (書式は次項)</td></tr>
+        <tr><td>J</td><td><code>担当</code></td><td>text</td><td><code>_members</code> タブから dropdown 参照</td></tr>
+        <tr><td>K</td><td><code>期日</code></td><td>date</td><td><code>YYYY-MM-DD</code></td></tr>
+        <tr><td>L</td><td><code>進捗</code></td><td>列挙</td><td><code>未着手</code> / <code>進行中</code> / <code>完了</code> / <code>停止</code></td></tr>
+        <tr><td>M</td><td><code>最終編集者</code></td><td>text</td><td><code>_members</code> から dropdown、手で選択</td></tr>
+        <tr><td>N</td><td><code>更新日</code></td><td>date</td><td>手入力。触ったときに更新</td></tr>
+      </tbody>
+    </table>
+    <p>ヘッダー名は日本語・英語どちらでも動く (alias 対応)。列の物理位置も変えられる (ヘッダー名で列を引くため)。</p>
+  </section>
+
+  <section id="ops">
+    <h2>4. よくある操作</h2>
+
+    <h3>新しい詳細行を追加する</h3>
+    <ol>
+      <li>コミットメントリストの末尾に新しい行を追加</li>
+      <li>A 列に新しい ID (連番) を入れる (例: <code>C-201</code>)</li>
+      <li>サイド / 部署 / サブ部署 / 成果 / 作戦 / 詳細 を埋める</li>
+      <li>担当・期日・進捗をドロップダウンから選ぶ</li>
+      <li>本編ページで <strong>↻ 再読込</strong> を押すか、ページをリロード</li>
+    </ol>
+    <p>同じ成果・作戦を繰り返し書けば、既存ノードに自動で紐づけられる (合流)。</p>
+
+    <h3>担当者を追加する</h3>
+    <ol>
+      <li>スプシ左下のタブメニュー (▼) → 「シートの再表示」 → <code>_members</code> を出す</li>
+      <li>A 列の末尾に新しい名前を追加</li>
+      <li>再び hidden に戻す (タブ右クリック → 「シートを非表示にする」)</li>
+      <li>これで <code>担当</code> / <code>最終編集者</code> 列のドロップダウンに追加される</li>
+    </ol>
+
+    <h3>部署カラーを変える</h3>
+    <ol>
+      <li><code>凡例</code> タブを開く</li>
+      <li>C 列 (<code>color_hex</code>) を <code>#RRGGBB</code> 形式で書き換える</li>
+      <li>本編でリロード</li>
+    </ol>
+    <div class="callout note">
+      <strong>制約</strong>
+      色コードは <code>#RGB</code> または <code>#RRGGBB</code> のみ有効。それ以外は自動で <code>#888</code> にフォールバックされる。
+    </div>
+
+    <h3>大目標 / 戦略的フォーカスを変える</h3>
+    <p>ヘッダーの「戦略的フォーカス：定量」ラベルや、左右の goal box の文言 (「2027 年 3 月末までに / 利益 1 億円」など) を編集する場合:</p>
+    <ol>
+      <li><code>戦略的フォーカス</code> タブを開く (2 行しかない、定量 / 定性)</li>
+      <li>B 列: フォーカスラベル (列の頂上に出る文字)</li>
+      <li>C 列: 目標サブ (goal box の上段、小さい文字)</li>
+      <li>D 列: 大目標 (goal box の下段、大きい文字)</li>
+      <li>本編でリロード</li>
+    </ol>
+
+    <h3>部署をまたぐ関連 (連携線) を追加する</h3>
+    <p>2 通りの書き方がある。どちらでも同じ線が描かれる。</p>
+
+    <h4 style="font-size:14px; margin-bottom:6px;">方法 A: コミットメントリストの <code>連携</code> 列 (I) に書く</h4>
+    <p>その行を起点にして、繋げたい先を列挙。1 セルに複数書ける (改行 or カンマ区切り)。</p>
+    <pre><code>C-101
+C-102
+本店/LP 転換率改善</code></pre>
+    <ul>
+      <li><code>C-xxx</code> → 詳細 ID を指定 → その詳細ボックスに繋がる</li>
+      <li><code>&lt;部署&gt;/&lt;作戦&gt;</code> → 作戦単位に繋がる (例: <code>商品/9 月同時発売キャンペーン</code>)</li>
+      <li><code>&lt;部署&gt;/&lt;成果&gt;</code> → 成果単位に繋がる</li>
+    </ul>
+
+    <h4 style="font-size:14px; margin-bottom:6px;">方法 B: <code>連携</code> タブに書く</h4>
+    <p>from / to を独立した 2 列で指定。関連が多くて行単位で書き切れないときに便利。</p>
+    <table>
+      <thead><tr><th>連携①</th><th>連携②</th></tr></thead>
+      <tbody>
+        <tr><td>C-004</td><td>C-101</td></tr>
+        <tr><td>商品/9 月同時発売キャンペーン</td><td>本店/LP 転換率改善</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout tip">
+      <strong>連携線の表示ルール</strong>
+      通常は非表示。片側のボックスに hover した瞬間だけアクセント色 (teal) の破線で浮かび上がる。方向は無く、from-to が同じペアは重複除去される。
+    </div>
+
+    <h3>詳細ボックスに URL を貼る (別窓オープン化)</h3>
+    <ol>
+      <li>コミットメントリスト の <code>リンク</code> 列 (H) にプレーンテキストで URL を貼る</li>
+      <li>Notion ページ / Google ドキュメント / Google ドライブフォルダ 何でも OK</li>
+      <li>URL が入った詳細ボックスにカーソルを乗せると <strong>指マーク</strong> になり、クリックで別窓オープン</li>
+    </ol>
+    <div class="callout warn">
+      <strong>重要</strong>
+      Google Sheets の「リンクを挿入」機能 (Cmd+K) は使わないこと。表示テキストしか読み取れず URL が消える。<strong>プレーンテキストとして URL 文字列そのものをコピペ</strong>する。
+    </div>
+  </section>
+
+  <section id="pitfalls">
+    <h2>5. ハマりポイント</h2>
+
+    <h3>連携セルが日付書式になっている</h3>
+    <p>症状: 連携列に <code>C-102</code> と書いたのに console に <code>参照解決失敗</code> の warning が出て線が描かれない。</p>
+    <p>原因: セルの表示形式が「日付」になっていて、入力が Excel 日付シリアル値 (数字) に変換されている。</p>
+    <p>対処:</p>
+    <ol>
+      <li>連携列 (I) のヘッダー「I」をクリックして列全体を選択</li>
+      <li>メニューの <strong>表示形式 → 数字 → 書式なしテキスト</strong></li>
+      <li>問題のあるセルを一度 Delete で消してから <code>C-102</code> を書き直す</li>
+    </ol>
+
+    <h3>URL をクリックしたら 404</h3>
+    <p>チェックポイント:</p>
+    <ul>
+      <li>URL が途中で切れていないか (セルをクリックして数式バーでフル文字列を確認)</li>
+      <li>「リンクを挿入」機能を使っていないか (プレーンテキストで貼る)</li>
+      <li>Notion / Google Drive の閲覧権限が自分のアカウントにあるか</li>
+      <li>DevTools Console (Cmd+Option+I) に <code>[commitment-map] open link: ...</code> が出るので、その URL を直接ブラウザにコピペして開いて確認</li>
+    </ul>
+
+    <h3>スプシの共有権限を「メンバー個別」にしたら見えなくなった</h3>
+    <p>HTML はスプシを匿名 fetch で読むため、公開レベルは <strong>「リンクを知っている全員が閲覧」以上</strong>が必要。編集権限だけメンバー個別に付与、閲覧はリンク公開のまま、が正解。</p>
+
+    <h3>編集したのに反映されない</h3>
+    <ul>
+      <li>本編ページで <strong>↻ 再読込</strong> ボタン (右上) を押す</li>
+      <li>それでもダメなら <strong>Cmd+Shift+R</strong> (Mac) で強制リロード</li>
+      <li>スプシ側の編集が保存されているか確認 (Google Sheets は自動保存だが、ネットが切れると保留になる)</li>
+    </ul>
+
+    <h3>装飾行を 1 行目に書いても壊れないか</h3>
+    <p>OK。<code>戦略的フォーカス</code> タブの 1 行目に「WE PROMISE!...」のような自由記述を置いても、HTML は「必須ヘッダーが揃った行」を自動検出するので影響なし。</p>
+  </section>
+
+  <section id="faq">
+    <h2>6. FAQ</h2>
+
+    <h3>Q. スプシの列順を変えたら壊れる?</h3>
+    <p>A. 壊れない。HTML は「ヘッダー名」で列を引くので、列の物理位置は自由に変えられる。</p>
+
+    <h3>Q. ヘッダー名を英語 / 日本語どちらでも書ける?</h3>
+    <p>A. どちらも OK。<code>id</code> ↔ <code>ID</code>、<code>owner</code> ↔ <code>担当</code>、<code>editor</code> ↔ <code>最終編集者</code> など、alias が定義されている。</p>
+
+    <h3>Q. 新しい部署を追加したい</h3>
+    <p>A. <code>凡例</code> タブに新規行を追加 (key / label / color_hex / display_order を埋める)。コミットメントリストの部署列のドロップダウン正本を更新するには <code>bootstrap-sheet.gs</code> の <code>applyValidations</code> を書き換えて再実行。</p>
+
+    <h3>Q. HTML を編集したい / 機能追加したい</h3>
+    <p>A. GitHub リポジトリ: <a href="https://github.com/sasaki-ta-instyle/mb-commitment-map" target="_blank" rel="noopener">sasaki-ta-instyle/mb-commitment-map</a>。ローカル編集 → scp で本番 <code>/var/www/mb/html/</code> にデプロイ。</p>
+
+    <h3>Q. マイルストーンタブに何を書けばいい?</h3>
+    <p>A. 作戦ごとの月次目標値・実績値。1 行 = 1 作戦の 1 メトリック。<code>strategy_id</code> でコミットメントリストの ID と紐付ける。詳細は <a href="https://github.com/sasaki-ta-instyle/mb-commitment-map/blob/main/docs/sheets-schema.md" target="_blank" rel="noopener">docs/sheets-schema.md</a> の Tab 2 参照。</p>
+  </section>
+
+  <hr>
+  <p style="text-align:center; color:var(--color-text-muted); font-size:12px;">
+    メビウス製薬 コミットメントマップ 使い方マニュアル · 最終更新 2026-07-28
+  </p>
+</div>
+</body>
+</html>
