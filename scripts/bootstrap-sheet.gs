@@ -20,7 +20,7 @@ const HEADERS = {
   ],
   '凡例': ['key', 'label', 'color_hex', 'display_order'],
   '戦略的フォーカス': ['サイド', 'フォーカスラベル', '目標サブ', '大目標'],
-  '連携': ['from', 'to', 'label', 'style'],
+  '連携': ['連携①', '連携②', 'ラベル', 'スタイル'],
   '_members': ['name'],
   '_progress': ['label']
 };
