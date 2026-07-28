@@ -1,0 +1,1607 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>メビウス製薬 コミットメントマップ 2026-2027</title>
+  <link rel="icon" href="https://mb.instyle.group/html/mb_favicon_2026.png">
+  <meta property="og:title" content="メビウス製薬 コミットメントマップ 2026-2027">
+  <meta property="og:description" content="定量・定性 2 大目標を部署別に [成果 → 作戦 → 詳細] へ分解した社内共通認識マップ">
+  <meta property="og:image" content="https://mb.instyle.group/html/mb_ogp_2026.png">
+  <meta property="og:type" content="website">
+
+  <!-- Gen Interface JP -->
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gen-interface-jp@0.5.0/all.css">
+
+  <!-- fflate for xlsx unzip -->
+  <script src="https://cdn.jsdelivr.net/npm/fflate@0.8.2/umd/index.js"></script>
+
+  <style>
+  /* ============ Tokens (design-system_mebius) ============ */
+  :root {
+    --color-bg:          #F3F3F3;
+    --color-surface:     #F6FAFC;
+    --color-surface-2:   #F1F5F7;
+    --color-surface-3:   #E3E9EB;
+
+    --color-text:         #1E1E1E;
+    --color-text-muted:   #878F92;
+    --color-text-light:   #D7D7D7;
+    --color-text-inv:     #F6FAFC;
+
+    --color-success:     #7BB785;
+    --color-warning:     #D4772C;
+    --color-error:       #C6292C;
+    --color-info:        #3F5680;
+    --color-highlight:   #E2DD2A;
+    --color-accent:      #00ABBF;
+
+    --glass-light:    rgba(255,255,255, 0.55);
+    --glass-warm:     rgba(246,250,252, 0.58);
+    --glass-tinted:   rgba(215,215,215, 0.42);
+    --glass-dark:     rgba( 63, 86,128, 0.78);
+
+    --glass-border-l: rgba(255,255,255, 0.80);
+    --glass-border-w: rgba(255,255,255, 0.62);
+    --glass-border-d: rgba(255,255,255, 0.13);
+
+    --glass-blur-sm:  saturate(180%) blur(16px);
+    --glass-blur:     saturate(200%) blur(24px);
+    --glass-blur-lg:  saturate(220%) blur(40px);
+
+    --glass-shadow-sm: 0 2px 12px rgba(30,30,30,.09), 0 1px 4px rgba(30,30,30,.07);
+    --glass-shadow:    0 8px 32px rgba(30,30,30,.11), 0 2px 8px rgba(30,30,30,.08);
+
+    --glass-hl:    inset 0 1px 0 rgba(255,255,255,.90), inset 0 -1px 0 rgba(0,0,0,.055);
+    --glass-hl-d:  inset 0 1px 0 rgba(255,255,255,.18), inset 0 -1px 0 rgba(0,0,0,.22);
+
+    --r-sm:   10px;
+    --r:      16px;
+    --r-lg:   24px;
+    --r-xl:   32px;
+    --r-pill: 999px;
+
+    --corner-shape:      superellipse(2.5);
+    --corner-shape-hard: superellipse(3.5);
+
+    --font-sans:    'Gen Interface JP', sans-serif;
+    --font-display: 'Gen Interface JP Display', 'Gen Interface JP', sans-serif;
+
+    --ease-out:    250ms cubic-bezier(.4, 0, .2, 1);
+
+    --header-h: 64px;
+  }
+  * { corner-shape: var(--corner-shape); box-sizing: border-box; }
+  .glass-panel { corner-shape: var(--corner-shape-hard); }
+
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: var(--font-sans);
+    font-size: 14px;
+    line-height: 1.7;
+    color: var(--color-text);
+    font-feature-settings: "palt";
+    background: var(--color-bg);
+    min-height: 100vh;
+  }
+  :where(h1, h2, h3, h4) { font-family: var(--font-display); }
+
+  /* BudouX target selectors */
+  :where(h1, h2, h3, h4, p, li, td, th, .node-label, .goal-label) {
+    word-break: keep-all;
+    overflow-wrap: anywhere;
+    line-break: strict;
+  }
+
+  /* ============ Scene background ============ */
+  .scene-bg {
+    position: fixed; inset: 0; z-index: 0;
+    background: var(--color-bg);
+    overflow: hidden;
+    pointer-events: none;
+  }
+  .scene-bg::before {
+    content: ''; position: absolute; inset: 0;
+    background:
+      radial-gradient(ellipse 72% 65% at  8%  6%, rgba(215,215,215,.58) 0%, transparent 55%),
+      radial-gradient(ellipse 55% 55% at 94% 10%, rgba(241,245,247,.65) 0%, transparent 52%),
+      radial-gradient(ellipse 52% 68% at 78% 88%, rgba(0,171,191,.10)   0%, transparent 55%),
+      radial-gradient(ellipse 66% 46% at 18% 92%, rgba(241,245,247,.52) 0%, transparent 55%),
+      radial-gradient(ellipse 42% 42% at 50% 48%, rgba(246,250,252,.32) 0%, transparent 52%);
+  }
+
+  /* ============ App header ============ */
+  .app-header {
+    position: sticky; top: 0; z-index: 10;
+    display: flex; align-items: center; gap: 24px;
+    background: rgba(227,233,235,.72);
+    backdrop-filter: saturate(180%) blur(16px);
+    -webkit-backdrop-filter: saturate(180%) blur(16px);
+    border-bottom: 1px solid rgba(255,255,255,.42);
+    padding: 12px 32px;
+    height: var(--header-h);
+  }
+  .app-header .brand { display: flex; align-items: center; gap: 12px; }
+  .app-header .brand img { height: 14px; display: block; }
+  .app-header h1 {
+    margin: 0; font-size: 15px; font-weight: 600; letter-spacing: 0.01em;
+    color: var(--color-text);
+  }
+  .app-header .sync-info { display: flex; align-items: center; gap: 10px; margin-left: auto; }
+  .app-header .sync-time {
+    font-size: 12px; color: var(--color-text-muted);
+    font-variant-numeric: tabular-nums;
+  }
+  .tabs {
+    display: inline-flex; gap: 2px; padding: 4px;
+    background: rgba(246,250,252,.68);
+    backdrop-filter: saturate(220%) blur(32px);
+    border: 1px solid rgba(255,255,255,.80);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.92), inset 0 -1px 0 rgba(0,0,0,.05),
+                0 4px 16px rgba(30,30,30,.10);
+    border-radius: var(--r-pill);
+  }
+  .tab {
+    padding: 6px 16px; font-size: 13px; font-weight: 500;
+    color: var(--color-text-muted); background: transparent; border: none;
+    border-radius: var(--r-pill); cursor: pointer;
+    transition: all var(--ease-out); font-family: inherit;
+  }
+  .tab:hover { color: var(--color-text); background: rgba(255,255,255,.60); }
+  .tab.active {
+    color: var(--color-text-inv); background: rgba(63,86,128,.82);
+    box-shadow: var(--glass-hl-d);
+  }
+
+  /* Btn secondary */
+  .btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 6px 14px; font-size: 12px; font-weight: 500; letter-spacing: 0.01em;
+    border-radius: var(--r-pill); cursor: pointer; border: none;
+    transition: all var(--ease-out); font-family: inherit;
+    text-decoration: none;
+    background: rgba(246,250,252,.65);
+    backdrop-filter: blur(12px);
+    color: var(--color-text);
+    border: 1px solid rgba(255,255,255,.78);
+    box-shadow: var(--glass-hl), var(--glass-shadow-sm);
+  }
+  .btn:hover { background: rgba(255,255,255,.82); transform: translateY(-1px); }
+  .btn.btn-accent {
+    background: var(--color-accent); color: #fff;
+    border-color: rgba(255,255,255,.55);
+    box-shadow: var(--glass-hl), 0 4px 16px rgba(0,171,191,.28);
+  }
+
+  /* ============ Container ============ */
+  main.container {
+    position: relative; z-index: 1;
+    max-width: 1600px; margin: 0 auto; padding: 20px 24px 48px;
+  }
+
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  /* ============ Glass panel ============ */
+  .glass-panel {
+    background: rgba(246,250,252,.50);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--glass-border-w);
+    box-shadow: var(--glass-hl), var(--glass-shadow);
+    border-radius: var(--r-xl);
+    padding: 24px;
+    position: relative; overflow: hidden;
+  }
+  .glass-panel::before {
+    content: ''; position: absolute;
+    top: 0; left: 10%; right: 10%; height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,.85) 50%, transparent);
+    pointer-events: none;
+  }
+
+  /* ============ Network diagram (SVG) ============ */
+  /* 3 モード: 定量 / 定性 / 全体 — SVG は横に少し余裕を持たせ、両サイドで dept を含める */
+  .network-viewport {
+    position: relative;
+    width: 100%;
+    overflow-x: auto;
+    overflow-y: auto;
+    scroll-behavior: smooth;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: thin;
+    max-height: calc(100vh - 200px);
+  }
+  .network-viewport::-webkit-scrollbar { width: 10px; height: 10px; }
+  .network-viewport::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.18); border-radius: 5px; }
+  .network-viewport::-webkit-scrollbar-track { background: transparent; }
+  .scroll-content {
+    position: relative;
+    width: 180%;
+    transition: width 380ms cubic-bezier(.4,0,.2,1);
+  }
+  #network-svg {
+    display: block;
+    width: 100%;   /* = 180% of viewport */
+    height: auto;
+  }
+  /* スナップアンカー: viewport の scrollLeft = 0 と scrollLeft = max の 2 点に吸着 */
+  .snap {
+    position: absolute;
+    top: 0;
+    width: 1px;
+    height: 1px;
+    pointer-events: none;
+  }
+  .snap-start { left: 0; scroll-snap-align: start; }
+  .snap-end   { right: 0; scroll-snap-align: end; }
+
+  .network-viewport.mode-overview {
+    overflow-x: hidden;
+    scroll-snap-type: none;
+    max-height: none;
+  }
+  .network-viewport.mode-overview .scroll-content {
+    width: 100%;
+  }
+  /* ツールバー — 3 ボタンをそれぞれ独立した pill として並べる */
+  .net-toolbar {
+    display: inline-flex;
+    gap: 10px;
+    margin: 0 auto 14px;
+    align-items: center;
+  }
+  .net-toolbar-wrap {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 4px;
+  }
+  .net-btn {
+    padding: 8px 18px;
+    font-size: 12px; font-weight: 500; letter-spacing: 0.01em;
+    color: var(--color-text);
+    background: rgba(246,250,252,.68);
+    backdrop-filter: saturate(220%) blur(32px);
+    -webkit-backdrop-filter: saturate(220%) blur(32px);
+    border: 1px solid rgba(255,255,255,.80);
+    box-shadow: var(--glass-hl), 0 4px 14px rgba(30,30,30,.10);
+    border-radius: var(--r-pill);
+    cursor: pointer;
+    transition: all var(--ease-out);
+    font-family: inherit;
+  }
+  .net-btn:hover {
+    background: rgba(255,255,255,.85);
+    transform: translateY(-1px);
+    box-shadow: var(--glass-hl), 0 6px 20px rgba(30,30,30,.14);
+  }
+  .net-btn.active {
+    color: var(--color-text-inv);
+    background: rgba(63,86,128,.82);
+    border-color: rgba(255,255,255,.14);
+    box-shadow: var(--glass-hl-d), 0 4px 16px rgba(30,30,30,.24);
+  }
+  .net-btn .icon { font-size: 13px; }
+  .col-header {
+    font-family: var(--font-display);
+    font-size: 11px; font-weight: 600;
+    fill: var(--color-text-muted);
+    letter-spacing: 0.06em; text-transform: uppercase;
+    text-anchor: middle;
+  }
+  .goal-box {
+    fill: rgba(255,255,255,.92);
+    stroke: rgba(63,86,128,.55);
+    stroke-width: 2;
+    filter: drop-shadow(0 6px 18px rgba(30,30,30,.16));
+  }
+  .goal-box.qual { fill: rgba(255,255,255,.92); stroke: rgba(63,86,128,.55); }
+  .goal-label {
+    font-family: var(--font-display);
+    font-size: 13px; font-weight: 700;
+    fill: var(--color-text);
+    text-anchor: middle;
+  }
+  .goal-sub {
+    font-family: var(--font-display);
+    font-size: 10px;
+    fill: var(--color-text-muted);
+    text-anchor: middle;
+  }
+  .dept-node {
+    stroke: rgba(255,255,255,.85);
+    stroke-width: 2;
+    filter: drop-shadow(0 4px 12px rgba(30,30,30,.18));
+  }
+  .dept-label {
+    font-family: var(--font-display);
+    font-size: 13px; font-weight: 600;
+    fill: #1E1E1E;
+    text-anchor: middle; dominant-baseline: middle;
+  }
+  .item-box {
+    stroke: rgba(255,255,255,.72);
+    stroke-width: 1;
+    filter: drop-shadow(0 1px 3px rgba(30,30,30,.10));
+    cursor: pointer;
+    transition: stroke 120ms ease, stroke-width 120ms ease, filter 180ms ease;
+  }
+  /* テキストを乗せる foreignObject が rect の hover を奪ってしまうのを防ぐ */
+  #network-svg foreignObject { pointer-events: none; }
+  .item-box:hover {
+    /* 部署色を黒と混ぜて濃くする (詳細 fill が濃い場合でも輪郭が沈まない)。fallback は dark navy */
+    stroke: #1E1E1E;
+    stroke: color-mix(in srgb, var(--dept-color, #1E1E1E) 45%, #1E1E1E 55%);
+    filter: drop-shadow(0 6px 16px rgba(30,30,30,.28));
+  }
+  .item-label {
+    font-family: var(--font-sans);
+    font-size: 9.5px;
+    font-weight: 500;
+    fill: #1E1E1E;
+    pointer-events: none;
+    dominant-baseline: middle;
+  }
+  /* foreignObject 内 HTML テキスト — BudouX が挿入する <wbr> と word-break: keep-all で意味区切りのみ改行 */
+  /* 測定用の hidden container 内 div にも同じスタイルを効かせるため、セレクタは .item-fo 単独 */
+  .item-fo {
+    font-family: var(--font-sans);
+    font-size: 9.5px;
+    font-weight: 500;
+    line-height: 1.30;
+    color: #1E1E1E;
+    word-break: keep-all;
+    overflow-wrap: anywhere;
+    line-break: strict;
+    display: flex;
+    align-items: center;
+    min-height: 100%;
+    box-sizing: border-box;
+    padding: 2px 0;
+    pointer-events: none;
+    letter-spacing: 0.01em;
+  }
+  .item-date {
+    font-family: var(--font-sans);
+    font-size: 7.5px;
+    font-weight: 500;
+    fill: rgba(30,30,30,0.60);
+    pointer-events: none;
+    text-anchor: end;
+    letter-spacing: 0.02em;
+  }
+  /* 括弧書き補足 (「(課題: xxx)」など) を視覚的に沈める */
+  .item-fo .paren-note {
+    font-size: 90%;
+    opacity: 0.65;
+  }
+  .connector {
+    fill: none;
+    stroke-width: 1.4;
+    stroke-linecap: round;
+  }
+
+  /* ============ Legend ============ */
+  .legend {
+    display: flex; flex-wrap: wrap; gap: 12px 20px;
+    margin: 0 0 16px 0;
+    padding: 12px 20px;
+    background: rgba(246,250,252,.56);
+    backdrop-filter: var(--glass-blur-sm);
+    border: 1px solid rgba(255,255,255,.72);
+    border-radius: var(--r);
+    box-shadow: var(--glass-hl), var(--glass-shadow-sm);
+    font-size: 12px;
+  }
+  .legend-item { display: inline-flex; align-items: center; gap: 6px; color: var(--color-text-muted); }
+  .legend-swatch { width: 12px; height: 12px; border-radius: 3px; border: 1px solid rgba(255,255,255,.6); }
+
+  /* ============ Popover ============ */
+  #popover {
+    position: fixed;
+    z-index: 100;
+    max-width: 320px;
+    padding: 16px 18px;
+    background: rgba(255,255,255,.92);
+    backdrop-filter: saturate(180%) blur(16px);
+    border: 1px solid rgba(255,255,255,.78);
+    border-radius: var(--r);
+    box-shadow: var(--glass-hl), 0 12px 40px rgba(30,30,30,.22);
+    font-size: 12px; line-height: 1.6;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 140ms ease;
+    pointer-events: none;
+  }
+  #popover.visible { opacity: 1; visibility: visible; }
+  #popover .pop-title { font-weight: 600; font-size: 13px; margin-bottom: 8px; color: var(--color-text); }
+  #popover .pop-kv { display: grid; grid-template-columns: auto 1fr; gap: 4px 10px; margin-top: 6px; }
+  #popover .pop-k { color: var(--color-text-muted); font-size: 11px; }
+  #popover .pop-v { color: var(--color-text); font-size: 11px; }
+  #popover .pop-band { height: 3px; border-radius: 2px; margin-bottom: 10px; }
+  .badge {
+    display: inline-block; padding: 2px 8px;
+    border-radius: var(--r-pill); font-size: 10px; font-weight: 600;
+    border: 1px solid;
+  }
+  .badge-未着手 { background: #E3E3E3; color: var(--color-text-muted); border-color: #B0B0B0; }
+  .badge-進行中 { background: #D8DEE8; color: #2A3D5E;               border-color: #99A4BB; }
+  .badge-完了   { background: #D8E5DC; color: #15803D;               border-color: #9FB9AB; }
+  .badge-停止   { background: #EDDDC8; color: #B45309;               border-color: #C9AD92; }
+  .badge-default { background: #EEEEEE; color: var(--color-text-muted); border-color: #BBBBBB; }
+
+  /* ============ Milestone table ============ */
+  .ms-scroll {
+    overflow: auto;
+    max-height: 72vh;
+    border-radius: var(--r);
+    background: rgba(246,250,252,.30);
+  }
+  table.ms-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 12px;
+    min-width: 1600px;
+  }
+  table.ms-table thead th {
+    position: sticky; top: 0; z-index: 3;
+    background: rgba(227,233,235,.92);
+    backdrop-filter: saturate(180%) blur(16px);
+    padding: 8px 10px;
+    font-size: 11px; font-weight: 600;
+    color: var(--color-text-muted);
+    text-align: right;
+    letter-spacing: 0.04em;
+    border-bottom: 1px solid rgba(255,255,255,.62);
+    white-space: nowrap;
+  }
+  table.ms-table thead th.sticky-l {
+    position: sticky; left: 0; z-index: 5;
+    text-align: left;
+    background: rgba(227,233,235,.98);
+  }
+  table.ms-table td {
+    padding: 6px 10px;
+    border-bottom: 1px solid rgba(255,255,255,.38);
+    background: transparent;
+    color: var(--color-text);
+    text-align: right;
+    vertical-align: top;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+  }
+  table.ms-table td.sticky-l {
+    position: sticky; left: 0; z-index: 2;
+    text-align: left;
+    background: rgba(241,245,247,.88);
+    backdrop-filter: blur(12px);
+    max-width: 220px; white-space: normal; line-height: 1.4;
+  }
+  table.ms-table tr:nth-child(even) td:not(.sticky-l) { background: rgba(241,245,247,.20); }
+  .ms-band {
+    display: inline-block; width: 8px; height: 8px; border-radius: 50%;
+    margin-right: 6px; vertical-align: middle;
+    border: 1px solid rgba(255,255,255,.7);
+  }
+  .ms-cell-inner {
+    display: flex; flex-direction: column; align-items: flex-end; gap: 2px;
+    min-width: 76px;
+  }
+  .ms-target { color: var(--color-text-muted); font-size: 10px; }
+  .ms-actual { color: var(--color-text); font-weight: 600; }
+  .ms-bar { width: 60px; height: 3px; border-radius: 2px; background: rgba(255,255,255,.5); overflow: hidden; }
+  .ms-bar-fill { height: 100%; border-radius: 2px; }
+  .rate-good  { background: var(--color-success); }
+  .rate-mid   { background: var(--color-highlight); }
+  .rate-low   { background: var(--color-error); }
+  .rate-idle  { background: var(--color-text-light); }
+
+  /* ============ Error/loading ============ */
+  #status {
+    position: relative; z-index: 1;
+    max-width: 900px; margin: 20px auto;
+    padding: 12px 20px;
+    background: rgba(232,216,218,.92);
+    color: #B91C1C;
+    border: 1px solid #C2A1A3;
+    border-radius: var(--r);
+    font-size: 12px;
+    display: none;
+  }
+  .loading {
+    text-align: center; color: var(--color-text-muted); font-size: 13px;
+    padding: 60px 20px;
+  }
+
+  @media (max-width: 900px) {
+    .app-header { flex-wrap: wrap; height: auto; padding: 12px 20px; gap: 12px; }
+    .app-header h1 { font-size: 14px; }
+    main.container { padding: 12px 12px 32px; }
+  }
+  @supports not (backdrop-filter: blur(1px)) {
+    .glass-panel, .btn, .tabs, .app-header, table.ms-table thead th, table.ms-table td.sticky-l {
+      background: var(--color-surface);
+    }
+  }
+  </style>
+</head>
+<body>
+  <div class="scene-bg"></div>
+
+  <header class="app-header">
+    <a class="brand" href="https://instyle.group" aria-label="INSTYLE GROUP">
+      <img src="https://mb.instyle.group/_shared/static/logo.svg" alt="INSTYLE GROUP" onerror="this.style.display='none'">
+    </a>
+    <h1>メビウス製薬 コミットメントマップ 2026-2027</h1>
+    <nav class="tabs" role="tablist">
+      <button class="tab active" data-tab="network" role="tab">ネットワーク図</button>
+      <button class="tab" data-tab="milestone" role="tab">マイルストーン</button>
+    </nav>
+    <div class="sync-info">
+      <span class="sync-time" id="sync-time">読込中…</span>
+      <button class="btn" id="reload-btn" type="button">↻ 再読込</button>
+      <a class="btn btn-accent" id="sheet-link" target="_blank" rel="noopener">スプシを開く ↗</a>
+    </div>
+  </header>
+
+  <div id="status"></div>
+
+  <main class="container">
+    <section id="tab-network" class="tab-panel active">
+      <div class="glass-panel" style="padding: 16px 8px 20px;">
+        <div class="net-toolbar-wrap">
+          <div class="net-toolbar" role="tablist">
+            <button class="net-btn" type="button" data-mode="quant">← 定量</button>
+            <button class="net-btn" type="button" data-mode="overview"><span class="icon">⛶</span> 全体</button>
+            <button class="net-btn" type="button" data-mode="qual">定性 →</button>
+          </div>
+        </div>
+        <div class="network-viewport" id="network-viewport">
+          <div class="scroll-content">
+            <div class="snap snap-start"></div>
+            <div class="snap snap-end"></div>
+            <svg id="network-svg" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet"></svg>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="tab-milestone" class="tab-panel">
+      <div class="glass-panel">
+        <div id="milestone-content"><div class="loading">読み込み中…</div></div>
+      </div>
+    </section>
+  </main>
+
+  <div id="popover" role="tooltip"></div>
+
+  <script>
+  // ============================================================
+  //  mb-commitment-map — client-side renderer
+  //  Data source: Google Sheets (xlsx export + fflate unzip)
+  // ============================================================
+
+  const SHEETS_ID = '1E9KCnY4ACya-dzCtN5c_HwIR6amigRfJNYANKXbYu8A';
+  const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEETS_ID}/edit`;
+
+  // ---- DOM refs ----
+  document.getElementById('sheet-link').href = SHEET_URL;
+  const $status = document.getElementById('status');
+  const $syncTime = document.getElementById('sync-time');
+  const $reloadBtn = document.getElementById('reload-btn');
+  // legend chip strip は撤去（凡例は SVG 内のノード色そのものが凡例を兼ねる）
+  const $svg = document.getElementById('network-svg');
+  const $msContent = document.getElementById('milestone-content');
+  const $popover = document.getElementById('popover');
+
+  // ---- Tabs ----
+  document.querySelectorAll('.tab').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+    });
+  });
+
+  // ============================================================
+  //  xlsx export + fflate parse (from mb-progress-dashboard pattern)
+  // ============================================================
+  function decodeXml(s) {
+    return s.replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"').replace(/&apos;/g,"'");
+  }
+  function colLetterToIndex(letters) {
+    let n = 0; for (const c of letters) n = n * 26 + (c.charCodeAt(0) - 64); return n - 1;
+  }
+  function excelSerialToISO(serial) {
+    const ms = (serial - 25569) * 86400000;
+    const d = new Date(ms);
+    return `${d.getUTCFullYear()}-${String(d.getUTCMonth()+1).padStart(2,'0')}-${String(d.getUTCDate()).padStart(2,'0')}`;
+  }
+  function parseSharedStrings(xml) {
+    const ss = [];
+    const siRe = /<si\b[^>]*>([\s\S]*?)<\/si>/g;
+    let m;
+    while ((m = siRe.exec(xml))) {
+      const tRe = /<t\b[^>]*>([\s\S]*?)<\/t>/g;
+      let tm, s = '';
+      while ((tm = tRe.exec(m[1]))) s += tm[1];
+      ss.push(decodeXml(s).normalize('NFC'));
+    }
+    return ss;
+  }
+  function parseSheetXml(xml, ss) {
+    const rows = [];
+    const rowRe = /<row\b([^>]*)>([\s\S]*?)<\/row>/g;
+    let rm;
+    while ((rm = rowRe.exec(xml))) {
+      const cells = [];
+      const cellRe = /<c\b([^>]*)(?:\/>|>([\s\S]*?)<\/c>)/g;
+      let cm;
+      while ((cm = cellRe.exec(rm[2]))) {
+        const attrs = cm[1] || '', body = cm[2] || '';
+        const refM = attrs.match(/\br="([A-Z]+)\d+"/);
+        const col = refM ? colLetterToIndex(refM[1]) : cells.length;
+        const tM = attrs.match(/\bt="([^"]+)"/);
+        const sM = attrs.match(/\bs="(\d+)"/);
+        const type = tM ? tM[1] : 'n';
+        let value = '';
+        if (type === 's') {
+          const vM = body.match(/<v\b[^>]*>([\s\S]*?)<\/v>/);
+          if (vM) value = ss[parseInt(vM[1], 10)] || '';
+        } else if (type === 'inlineStr' || type === 'str') {
+          const tRe = /<t\b[^>]*>([\s\S]*?)<\/t>/g;
+          let tm2; while ((tm2 = tRe.exec(body))) value += tm2[1];
+          value = decodeXml(value).normalize('NFC');
+        } else {
+          const vM = body.match(/<v\b[^>]*>([\s\S]*?)<\/v>/);
+          if (vM) {
+            const raw = vM[1];
+            // Try excel-serial → date if the number is in reasonable range (>= 40000 = ~2009)
+            const num = parseFloat(raw);
+            if (Number.isFinite(num) && num > 40000 && num < 60000 && sM) {
+              // Likely date-formatted cell (crude heuristic: rely on style, otherwise keep raw)
+              value = raw; // keep raw; we'll parse date via string helper
+            } else {
+              value = raw;
+            }
+          }
+        }
+        while (cells.length < col) cells.push('');
+        cells[col] = value;
+      }
+      rows.push(cells);
+    }
+    return rows;
+  }
+
+  let _wbPromise = null;
+  async function fetchWorkbook() {
+    if (_wbPromise) return _wbPromise;
+    _wbPromise = (async () => {
+      const url = `https://docs.google.com/spreadsheets/d/${SHEETS_ID}/export?format=xlsx&_=${Date.now()}`;
+      const r = await fetch(url, { cache: 'no-store' });
+      if (!r.ok) throw new Error(`xlsx HTTP ${r.status} — シートの共有設定を「リンクを知っている全員が閲覧」以上にしてください`);
+      const buf = new Uint8Array(await r.arrayBuffer());
+      if (buf.length < 4 || buf[0]!==0x50||buf[1]!==0x4B||buf[2]!==0x03||buf[3]!==0x04) {
+        throw new Error('xlsx として返されない応答（共有設定要確認）');
+      }
+      if (!window.fflate) throw new Error('fflate not loaded');
+      const files = await new Promise((resolve, reject) => {
+        fflate.unzip(buf, (err, files) => err ? reject(err) : resolve(files));
+      });
+      const ss = files['xl/sharedStrings.xml']
+        ? parseSharedStrings(new TextDecoder('utf-8').decode(files['xl/sharedStrings.xml']))
+        : [];
+      const wbXml = new TextDecoder('utf-8').decode(files['xl/workbook.xml']);
+      const nameToRid = {};
+      const orderedNames = [];
+      const sheetRe = /<sheet\b([^>]*?)\/?>/g;
+      let sm;
+      while ((sm = sheetRe.exec(wbXml))) {
+        const nm = sm[1].match(/\bname="([^"]+)"/);
+        const rm2 = sm[1].match(/\br:id="([^"]+)"/);
+        if (nm && rm2) {
+          const name = decodeXml(nm[1]).normalize('NFC');
+          nameToRid[name] = rm2[1];
+          orderedNames.push(name);
+        }
+      }
+      const ridToPath = {};
+      const relsBuf = files['xl/_rels/workbook.xml.rels'];
+      if (relsBuf) {
+        const relsXml = new TextDecoder('utf-8').decode(relsBuf);
+        const relRe = /<Relationship\b([^>]*?)\/?>/g;
+        let rm3;
+        while ((rm3 = relRe.exec(relsXml))) {
+          const idM = rm3[1].match(/\bId="([^"]+)"/);
+          const tgM = rm3[1].match(/\bTarget="([^"]+)"/);
+          if (idM && tgM) ridToPath[idM[1]] = tgM[1];
+        }
+      }
+      const rowsByName = {};
+      for (const name of orderedNames) {
+        const p = ridToPath[nameToRid[name]];
+        if (!p) continue;
+        const path = p.startsWith('/') ? p.slice(1) : ('xl/' + p);
+        const xmlBuf = files[path];
+        if (!xmlBuf) continue;
+        rowsByName[name] = parseSheetXml(new TextDecoder('utf-8').decode(xmlBuf), ss);
+      }
+      return { sheetNames: orderedNames, rowsByName };
+    })();
+    return _wbPromise;
+  }
+
+  // ============================================================
+  //  Parse rows → typed records
+  //  ヘッダーは英語 (id/side/...) でも日本語 (ID/サイド/...) でも受け付ける
+  // ============================================================
+  const HEADER_ALIASES = {
+    // コミットメントリスト
+    'ID': 'id', 'id': 'id',
+    'サイド': 'side', 'side': 'side',
+    '部署': 'department', 'department': 'department',
+    'サブ部署': 'sub_department', 'サブ部門': 'sub_department', '部門': 'sub_department', 'sub_department': 'sub_department',
+    '成果': 'outcome', 'outcome': 'outcome',
+    '作戦': 'strategy', 'strategy': 'strategy',
+    '詳細': 'detail', 'detail': 'detail',
+    '担当': 'owner', 'owner': 'owner',
+    '期日': 'due_date', 'due_date': 'due_date',
+    '進捗': 'progress', 'progress': 'progress',
+    '編集者': 'editor', 'editor': 'editor',
+    '更新日': 'updated_at', 'updated_at': 'updated_at',
+    // マイルストーン
+    '作戦ID': 'strategy_id', 'strategy_id': 'strategy_id',
+    '作戦名': 'strategy_label', 'strategy_label': 'strategy_label',
+    '指標': 'metric', 'metric': 'metric',
+    '単位': 'unit', 'unit': 'unit',
+    // 凡例
+    'キー': 'key', 'key': 'key',
+    'ラベル': 'label', 'label': 'label',
+    'カラー': 'color_hex', '色': 'color_hex', 'color_hex': 'color_hex',
+    '表示順': 'display_order', 'display_order': 'display_order'
+  };
+  function _normalizeHeader(name) {
+    const n = String(name || '').trim();
+    // YYYY-MM_target / YYYY-MM_actual や YYYY-MM_目標 / YYYY-MM_実績 は変換
+    const m = n.match(/^(\d{4}-\d{2})_(target|actual|目標|実績)$/);
+    if (m) {
+      const kind = (m[2] === '目標') ? 'target' : (m[2] === '実績') ? 'actual' : m[2];
+      return `${m[1]}_${kind}`;
+    }
+    return HEADER_ALIASES[n] || n;
+  }
+  function rowsToObjects(rows) {
+    if (!rows || rows.length === 0) return [];
+    const header = (rows[0] || []).map(c => _normalizeHeader(c));
+    const out = [];
+    for (let i = 1; i < rows.length; i++) {
+      const r = rows[i] || [];
+      if (r.every(c => !c || !c.toString().trim())) continue;
+      const o = {};
+      header.forEach((h, j) => o[h] = (r[j] || '').toString().trim());
+      out.push(o);
+    }
+    return out;
+  }
+
+  function normalizeDate(v) {
+    if (!v) return '';
+    const s = v.toString().trim();
+    if (!s) return '';
+    // ISO already
+    if (/^\d{4}-\d{2}-\d{2}/.test(s)) return s.slice(0, 10);
+    // Excel serial
+    const n = parseFloat(s);
+    if (Number.isFinite(n) && n > 40000 && n < 60000) return excelSerialToISO(n);
+    return s;
+  }
+
+  // ============================================================
+  //  Network diagram layout & render
+  // ============================================================
+  const DEFAULT_LEGEND = [
+    { key: 'モール', color: '#39D353', order: 1 },
+    { key: '本店',   color: '#F5D944', order: 2 },
+    { key: 'CS',     color: '#E5484D', order: 3 },
+    { key: '商品',   color: '#7CE2FE', order: 4 }
+  ];
+
+  // color_hex を厳格に #RGB / #RRGGBB のみ許可 (CSS injection 対策)
+  function _validateHex(s) {
+    const m = /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.exec(String(s || '').trim());
+    return m ? '#' + m[1] : '#888';
+  }
+
+  function parseLegend(rows) {
+    const objs = rowsToObjects(rows || []);
+    if (objs.length === 0) return DEFAULT_LEGEND;
+    return objs
+      .filter(o => o.key)
+      .map(o => ({ key: o.key, label: o.label || o.key, color: _validateHex(o.color_hex), order: parseInt(o.display_order, 10) || 99 }))
+      .sort((a,b) => a.order - b.order);
+  }
+
+  // renderLegend は削除（凡例は SVG ノードそのもので表現）
+
+  // Build the tree: side -> department -> outcome -> strategy -> detail(row)
+  function buildTree(records, deptOrder) {
+    const tree = { 定量: {}, 定性: {} };
+    for (const dept of deptOrder) { tree.定量[dept] = {}; tree.定性[dept] = {}; }
+    for (const rec of records) {
+      const side = rec.side === '定性' ? '定性' : '定量';
+      const dept = rec.department;
+      if (!dept || !tree[side][dept]) continue;
+      const outcome = rec.outcome || '（成果未設定）';
+      const strategy = rec.strategy || '（作戦未設定）';
+      if (!tree[side][dept][outcome]) tree[side][dept][outcome] = {};
+      if (!tree[side][dept][outcome][strategy]) tree[side][dept][outcome][strategy] = [];
+      tree[side][dept][outcome][strategy].push(rec);
+    }
+    return tree;
+  }
+
+  // Compute layout coordinates
+  function layoutNetwork(tree, deptOrder, deptColors) {
+    // Constants
+    const W = 1800;
+    const PAD_Y = 64;
+    const DEPT_H_BASE = 112;
+    const DETAIL_GAP = 10;
+    const DEPT_GAP = 32;
+
+    // Column definitions (viewBox W=1800, dept center at 900、左右対称レイアウト)
+    // 中央 dept を挟んで、成果/作戦/詳細/dept までのギャップを左右で完全に揃える
+    // 0: 定量目標, 1: 成果L, 2: 作戦L, 3: 詳細L, 4: 部署, 5: 詳細R, 6: 作戦R, 7: 成果R, 8: 定性目標
+    const cols = [
+      { x: 20,   w: 130, label: '戦略的フォーカス：定量', role: 'goal-q' },
+      { x: 180,  w: 170, label: '成果', role: 'outcomeL' },
+      { x: 380,  w: 170, label: '作戦', role: 'strategyL' },
+      { x: 580,  w: 200, label: '詳細', role: 'detailL' },
+      { x: 810,  w: 180, label: '',     role: 'dept' },
+      { x: 1020, w: 200, label: '詳細', role: 'detailR' },
+      { x: 1250, w: 170, label: '作戦', role: 'strategyR' },
+      { x: 1450, w: 170, label: '成果', role: 'outcomeR' },
+      { x: 1650, w: 130, label: '戦略的フォーカス：定性', role: 'goal-p' }
+    ];
+
+    // 各詳細に必要な高さを事前計算 (テキスト量に応じて可変)
+    const deptBlocks = {};
+    for (const dept of deptOrder) {
+      const leftRows = [];
+      const rightRows = [];
+      Object.entries(tree.定量[dept] || {}).forEach(([oKey, strats]) => {
+        Object.entries(strats).forEach(([sKey, recs]) => {
+          recs.forEach(rec => {
+            leftRows.push({
+              outcome: oKey, strategy: sKey, rec,
+              h: computeBoxHeight(rec.detail || '', cols[3].w)
+            });
+          });
+        });
+      });
+      Object.entries(tree.定性[dept] || {}).forEach(([oKey, strats]) => {
+        Object.entries(strats).forEach(([sKey, recs]) => {
+          recs.forEach(rec => {
+            rightRows.push({
+              outcome: oKey, strategy: sKey, rec,
+              h: computeBoxHeight(rec.detail || '', cols[5].w)
+            });
+          });
+        });
+      });
+      deptBlocks[dept] = { leftRows, rightRows };
+    }
+
+    // Pre-pass: 詳細箱の高さはそのテキスト分だけで決める（変更しない）。
+    // 代わりに、隣接する詳細間で strategy/outcome 箱が重ならないよう「extraPadAfter」で
+    // 詳細間のスペーシングを広げる。
+    const CLEARANCE = 6;
+    for (const dept of deptOrder) {
+      const block = deptBlocks[dept];
+      [['leftRows', 2, 1], ['rightRows', 6, 7]].forEach(([rowsKey, sColIdx, oColIdx]) => {
+        const rows = block[rowsKey];
+        if (rows.length === 0) return;
+        const strategyCol = cols[sColIdx];
+        const outcomeCol = cols[oColIdx];
+        // 各行の strategy / outcome 箱の必要高さを算出
+        rows.forEach(r => {
+          r.strategyH = computeBoxHeight(r.strategy, strategyCol.w);
+          r.outcomeH  = computeBoxHeight(r.outcome, outcomeCol.w);
+          r.extraPadAfter = 0;
+        });
+        // 隣接する詳細ペアで、strategy / outcome が別グループなら overlap 判定
+        for (let i = 0; i < rows.length - 1; i++) {
+          const a = rows[i], b = rows[i + 1];
+          const sameStrategy = a.outcome === b.outcome && a.strategy === b.strategy;
+          const sameOutcome  = a.outcome === b.outcome;
+          // 隣接する 2 個の yMid 距離が (h_a/2 + h_b/2 + CLEARANCE) 以上必要
+          let minDist = a.h / 2 + b.h / 2 + CLEARANCE;
+          if (!sameStrategy) minDist = Math.max(minDist, a.strategyH / 2 + b.strategyH / 2 + CLEARANCE);
+          if (!sameOutcome)  minDist = Math.max(minDist, a.outcomeH  / 2 + b.outcomeH  / 2 + CLEARANCE);
+          const currentDist = a.h / 2 + DETAIL_GAP + b.h / 2;
+          const deficit = minDist - currentDist;
+          if (deficit > 0) a.extraPadAfter = deficit;
+        }
+      });
+      // block.h を再計算 (extraPadAfter を含む)
+      const spanOf = arr => arr.reduce((s, r) => s + r.h + DETAIL_GAP + (r.extraPadAfter || 0), -DETAIL_GAP);
+      const leftH = block.leftRows.length ? spanOf(block.leftRows) : 0;
+      const rightH = block.rightRows.length ? spanOf(block.rightRows) : 0;
+      const contentH = Math.max(leftH, rightH, DEPT_H_BASE);
+      block.h = contentH + 20;
+    }
+
+    let cursorY = PAD_Y;
+    for (const dept of deptOrder) {
+      deptBlocks[dept].yTop = cursorY;
+      deptBlocks[dept].yMid = cursorY + deptBlocks[dept].h / 2;
+      cursorY += deptBlocks[dept].h + DEPT_GAP;
+    }
+    const totalH = cursorY + PAD_Y;
+
+    // Position items within each dept block on each side
+    const items = [];  // { id, x, y, w, h, side, dept, kind, text, color, ref }
+    const links = []; // { from:{x,y}, to:{x,y}, color, opacity }
+
+    function positionSide(side) {
+      const isL = side === '定量';
+      const detailCol = cols[isL ? 3 : 5];
+      const strategyCol = cols[isL ? 2 : 6];
+      const outcomeCol = cols[isL ? 1 : 7];
+
+      for (const dept of deptOrder) {
+        const block = deptBlocks[dept];
+        const color = deptColors[dept] || '#888';
+        const rows = isL ? block.leftRows : block.rightRows;
+        if (rows.length === 0) continue;
+
+        const totalRowsH = rows.reduce((s, r) => s + r.h + DETAIL_GAP + (r.extraPadAfter || 0), -DETAIL_GAP);
+        const startY = block.yTop + (block.h - totalRowsH) / 2;
+
+        // Details (可変高 + extraPadAfter)
+        const yPositions = [];
+        let currentY = startY;
+        rows.forEach((row, i) => {
+          const id = `d-${side}-${dept}-${i}`;
+          items.push({
+            id, side, dept, kind: 'detail',
+            x: detailCol.x, y: currentY, w: detailCol.w, h: row.h,
+            text: row.rec.detail || '',
+            color, rec: row.rec, outcome: row.outcome, strategy: row.strategy
+          });
+          yPositions.push({ y: currentY, h: row.h, outcome: row.outcome, strategy: row.strategy });
+          currentY += row.h + DETAIL_GAP + (row.extraPadAfter || 0);
+        });
+
+        // Strategy: yMid = 配下 detail 群の yMid 中央、高さはテキスト行数分だけ
+        const stratGroups = {};
+        yPositions.forEach(p => {
+          const k = `${p.outcome}||${p.strategy}`;
+          if (!stratGroups[k]) stratGroups[k] = { outcome: p.outcome, strategy: p.strategy, positions: [] };
+          stratGroups[k].positions.push(p);
+        });
+        Object.values(stratGroups).forEach(sg => {
+          const yMid = sg.positions.reduce((a, p) => a + p.y + p.h/2, 0) / sg.positions.length;
+          const sh = computeBoxHeight(sg.strategy, strategyCol.w);
+          items.push({
+            id: `s-${side}-${dept}-${sg.outcome}-${sg.strategy}`,
+            side, dept, kind: 'strategy',
+            x: strategyCol.x, y: yMid - sh/2, w: strategyCol.w, h: sh,
+            text: sg.strategy, color, outcome: sg.outcome, strategy: sg.strategy
+          });
+        });
+
+        // Outcome: 同様に yMid + 自身のテキスト高さ
+        const outGroups = {};
+        yPositions.forEach(p => {
+          if (!outGroups[p.outcome]) outGroups[p.outcome] = { positions: [] };
+          outGroups[p.outcome].positions.push(p);
+        });
+        Object.entries(outGroups).forEach(([oKey, o]) => {
+          const yMid = o.positions.reduce((a, p) => a + p.y + p.h/2, 0) / o.positions.length;
+          const oh = computeBoxHeight(oKey, outcomeCol.w);
+          items.push({
+            id: `o-${side}-${dept}-${oKey}`,
+            side, dept, kind: 'outcome',
+            x: outcomeCol.x, y: yMid - oh/2, w: outcomeCol.w, h: oh,
+            text: oKey, color, outcome: oKey
+          });
+        });
+      }
+    }
+
+    positionSide('定量');
+    positionSide('定性');
+
+    // Safety: 同列 x 同部署内の縦方向オーバーラップを検知して押し下げる (最低 CLEARANCE 空ける)
+    function enforceGap(kind, colFilter) {
+      const grouped = {};
+      items.filter(it => it.kind === kind).forEach(it => {
+        const key = `${it.side}_${it.dept}`;
+        if (!grouped[key]) grouped[key] = [];
+        grouped[key].push(it);
+      });
+      Object.values(grouped).forEach(list => {
+        list.sort((a, b) => a.y - b.y);
+        for (let i = 1; i < list.length; i++) {
+          const prev = list[i - 1];
+          const cur = list[i];
+          const minY = prev.y + prev.h + CLEARANCE;
+          if (cur.y < minY) cur.y = minY;
+        }
+      });
+    }
+    enforceGap('detail');
+    enforceGap('strategy');
+    enforceGap('outcome');
+
+    // strategy / outcome の期日を子詳細の最遅日で集計
+    const detailItemsForDate = items.filter(x => x.kind === 'detail');
+    items.forEach(it => {
+      if (it.kind === 'detail') {
+        it.dueDate = normalizeDate(it.rec && it.rec.due_date);
+      } else if (it.kind === 'strategy') {
+        const kids = detailItemsForDate.filter(x =>
+          x.side === it.side && x.dept === it.dept &&
+          x.outcome === it.outcome && x.strategy === it.strategy);
+        const dates = kids.map(k => normalizeDate(k.rec && k.rec.due_date)).filter(Boolean).sort();
+        it.dueDate = dates.length ? dates[dates.length - 1] : '';
+      } else if (it.kind === 'outcome') {
+        const kids = detailItemsForDate.filter(x =>
+          x.side === it.side && x.dept === it.dept && x.outcome === it.outcome);
+        const dates = kids.map(k => normalizeDate(k.rec && k.rec.due_date)).filter(Boolean).sort();
+        it.dueDate = dates.length ? dates[dates.length - 1] : '';
+      }
+    });
+
+    // Build links: for each detail row, connect: goal → outcome → strategy → detail → dept
+    // 線色は成果/作戦/詳細のラベル色と同じ hue の neutral gray、明度上げ版
+    const LINK_COLOR = '#C4C9CB';
+    function pushLink(fromX, fromY, toX, toY, _color, opacity) {
+      const midX = (fromX + toX) / 2;
+      const d = `M ${fromX} ${fromY} C ${midX} ${fromY} ${midX} ${toY} ${toX} ${toY}`;
+      links.push({ d, color: LINK_COLOR, opacity: opacity || 0.55 });
+    }
+
+    const goalQ = { x: cols[0].x + cols[0].w, y: totalH / 2 };
+    const goalP = { x: cols[8].x, y: totalH / 2 };
+
+    const outcomeItems  = items.filter(it => it.kind === 'outcome');
+    const strategyItems = items.filter(it => it.kind === 'strategy');
+    const detailItems   = items.filter(it => it.kind === 'detail');
+
+    // goal → outcome
+    outcomeItems.forEach(o => {
+      const isL = o.side === '定量';
+      const goal = isL ? goalQ : goalP;
+      const from = { x: goal.x, y: goal.y };
+      const to = isL
+        ? { x: o.x, y: o.y + o.h/2 }
+        : { x: o.x + o.w, y: o.y + o.h/2 };
+      pushLink(from.x, from.y, to.x, to.y, o.color, 0.70);
+    });
+    // outcome → strategy: 親の中心から子の中心へ曲線
+    strategyItems.forEach(s => {
+      const isL = s.side === '定量';
+      const parent = outcomeItems.find(o => o.side === s.side && o.dept === s.dept && o.outcome === s.outcome);
+      if (!parent) return;
+      const from = isL
+        ? { x: parent.x + parent.w, y: parent.y + parent.h/2 }
+        : { x: parent.x, y: parent.y + parent.h/2 };
+      const to = isL
+        ? { x: s.x, y: s.y + s.h/2 }
+        : { x: s.x + s.w, y: s.y + s.h/2 };
+      pushLink(from.x, from.y, to.x, to.y, s.color, 0.60);
+    });
+    // strategy → detail: 親の中心から各子の中心へ曲線
+    detailItems.forEach(d => {
+      const isL = d.side === '定量';
+      const parent = strategyItems.find(s => s.side === d.side && s.dept === d.dept && s.outcome === d.outcome && s.strategy === d.strategy);
+      if (!parent) return;
+      const from = isL
+        ? { x: parent.x + parent.w, y: parent.y + parent.h/2 }
+        : { x: parent.x, y: parent.y + parent.h/2 };
+      const to = isL
+        ? { x: d.x, y: d.y + d.h/2 }
+        : { x: d.x + d.w, y: d.y + d.h/2 };
+      pushLink(from.x, from.y, to.x, to.y, d.color, 0.50);
+    });
+    // detail → dept (中央 dept 1 個。左側の詳細は dept 左端に、右側の詳細は dept 右端に接続)
+    detailItems.forEach(d => {
+      const isL = d.side === '定量';
+      const block = deptBlocks[d.dept];
+      const deptX = isL ? cols[4].x : cols[4].x + cols[4].w;
+      const deptY = block.yMid;
+      const from = isL
+        ? { x: d.x + d.w, y: d.y + d.h/2 }
+        : { x: d.x, y: d.y + d.h/2 };
+      pushLink(from.x, from.y, deptX, deptY, d.color, 0.32);
+    });
+
+    return { W, H: totalH, cols, deptBlocks, items, links, deptOrder, deptColors };
+  }
+
+  function countDetails(deptOutcomes) {
+    let n = 0;
+    Object.values(deptOutcomes || {}).forEach(strats => {
+      Object.values(strats).forEach(details => { n += details.length; });
+    });
+    return n;
+  }
+
+  function svgEl(tag, attrs, children) {
+    const ns = 'http://www.w3.org/2000/svg';
+    const el = document.createElementNS(ns, tag);
+    if (attrs) for (const k of Object.keys(attrs)) el.setAttribute(k, attrs[k]);
+    if (children) children.forEach(c => el.appendChild(c));
+    return el;
+  }
+  function svgText(x, y, text, attrs) {
+    const el = svgEl('text', Object.assign({ x, y }, attrs || {}));
+    el.textContent = text;
+    return el;
+  }
+
+  // BudouX parser を保持（意味区切りに沿った折り返しに使う）
+  let _budouxParser = null;
+
+  // ※ 以前は自前の CJK/HW 文字幅推定で wrapText していたが、
+  //   実測ベース (hidden container + offsetHeight) に統一したため削除
+
+  const LINE_H = 12;
+  const BOX_PAD_Y = 12;
+  const BOX_PAD_X = 16;
+
+  // 箱内テキストの HTML 生成 (escape → 括弧補足を .paren-note で沈める → BudouX で意味区切りに wbr)
+  // measure と render で同じ HTML を使うことで、高さ予測と実描画の齟齬をゼロにする
+  function renderItemHTML(text) {
+    const escaped = escapeHtml(text || '');
+    // 半角/全角の括弧 2 文字以上の内容を .paren-note で包む
+    const withParens = escaped.replace(/([(（])([^)）]{2,}?)([)）])/g,
+      '<span class="paren-note">$1$2$3</span>');
+    if (_budouxParser) {
+      try { return _budouxParser.translateHTMLString(withParens); }
+      catch (_) { return withParens; }
+    }
+    return withParens;
+  }
+
+  // Hidden container で実 DOM を使って正確な高さを測定
+  const _measureContainer = (() => {
+    const el = document.createElement('div');
+    el.style.cssText = 'position:absolute;left:-9999px;top:-9999px;width:auto;height:auto;visibility:hidden;pointer-events:none;';
+    document.body.appendChild(el);
+    return el;
+  })();
+  const _measureCache = new Map();
+  function measureTextHeightVb(text, availVb) {
+    const key = `${availVb}|${text}`;
+    if (_measureCache.has(key)) return _measureCache.get(key);
+    const div = document.createElement('div');
+    div.className = 'item-fo';
+    div.style.width = availVb + 'px';   // 1vb ≈ 1px in fo coord = fine for line-count
+    div.style.minHeight = '0';
+    div.style.display = 'block';
+    div.style.padding = '0';
+    div.innerHTML = renderItemHTML(text);
+    _measureContainer.appendChild(div);
+    const h = div.offsetHeight;
+    _measureContainer.removeChild(div);
+    _measureCache.set(key, h);
+    return h;
+  }
+
+  function computeBoxHeight(text, boxW) {
+    const avail = boxW - BOX_PAD_X;
+    if (!text) return 24;
+    const contentH = measureTextHeightVb(text, avail);
+    // 測定結果を LINE_H 単位に snap (実際の line-height は 12.35 前後だが 12 の倍数で揃える)
+    const lines = Math.max(1, Math.round(contentH / LINE_H));
+    return Math.max(24, BOX_PAD_Y + lines * LINE_H);
+  }
+
+  function renderNetwork(layout) {
+    $svg.innerHTML = '';
+    $svg.setAttribute('viewBox', `0 0 ${layout.W} ${layout.H}`);
+
+    // --- Column headers ---
+    const GOAL_H = 120;
+    const goalYForHeader = (layout.H - GOAL_H) / 2;
+    layout.cols.forEach(col => {
+      if (!col.label) return;
+      // 大目標列 (goal-q / goal-p) はボックスすぐ上に。その他 (成果/作戦/詳細) は上端 y=30
+      const y = (col.role === 'goal-q' || col.role === 'goal-p')
+        ? goalYForHeader - 10
+        : 30;
+      $svg.appendChild(svgText(col.x + col.w/2, y, col.label, { class: 'col-header' }));
+    });
+
+    // --- Connectors (behind boxes) ---
+    layout.links.forEach(l => {
+      $svg.appendChild(svgEl('path', {
+        d: l.d, class: 'connector',
+        stroke: l.color, 'stroke-opacity': l.opacity
+      }));
+    });
+
+    // --- Goal boxes ---
+    const cQ = layout.cols[0], cP = layout.cols[8];
+    const goalW = cQ.w, goalH = 120, goalY = (layout.H - goalH) / 2;
+    // Quantitative goal (left)
+    const gQ = svgEl('rect', {
+      x: cQ.x, y: goalY, width: goalW, height: goalH,
+      rx: 18, class: 'goal-box'
+    });
+    $svg.appendChild(gQ);
+    $svg.appendChild(svgText(cQ.x + goalW/2, goalY + goalH/2 - 10, '2027 年 3 月末までに', { class: 'goal-sub' }));
+    $svg.appendChild(svgText(cQ.x + goalW/2, goalY + goalH/2 + 10, '利益 1 億円', { class: 'goal-label' }));
+    // Qualitative goal (right)
+    const gP = svgEl('rect', {
+      x: cP.x, y: goalY, width: goalW, height: goalH,
+      rx: 18, class: 'goal-box qual'
+    });
+    $svg.appendChild(gP);
+    $svg.appendChild(svgText(cP.x + goalW/2, goalY + goalH/2 - 10, '大切な人に', { class: 'goal-sub' }));
+    $svg.appendChild(svgText(cP.x + goalW/2, goalY + goalH/2 + 10, '紹介したくなるブランド', { class: 'goal-label' }));
+
+    // --- Dept nodes (中央 1 セット) ---
+    const deptCol = layout.cols[4];
+    layout.deptOrder.forEach(dept => {
+      const block = layout.deptBlocks[dept];
+      // block 高さに連動 (最小 120, block の半分を目安、block 高より 16 少ない上限)
+      const nodeH = Math.min(block.h - 16, Math.max(120, block.h * 0.5));
+      const nodeY = block.yMid - nodeH / 2;
+      const color = layout.deptColors[dept] || '#888';
+      const displayLabel = (layout.deptLabels && layout.deptLabels[dept]) || dept;
+      $svg.appendChild(svgEl('rect', {
+        x: deptCol.x, y: nodeY, width: deptCol.w, height: nodeH,
+        rx: 22, class: 'dept-node', fill: color
+      }));
+      // 1 行で描画（dept box は左右余裕あるので原則折り返さない）。
+      // 12 CJK 相当以上のときだけ / や ： で 2 行に分ける
+      const parts = displayLabel.split(/(?<=[／\/：:])/);
+      if (parts.length > 1 && displayLabel.length > 12) {
+        const first = parts[0];
+        const rest = parts.slice(1).join('');
+        $svg.appendChild(svgText(deptCol.x + deptCol.w/2, block.yMid - 8, first, { class: 'dept-label' }));
+        $svg.appendChild(svgText(deptCol.x + deptCol.w/2, block.yMid + 14, rest, { class: 'dept-label' }));
+      } else {
+        $svg.appendChild(svgText(deptCol.x + deptCol.w/2, block.yMid + 4, displayLabel, { class: 'dept-label' }));
+      }
+    });
+
+    // --- Items (outcome / strategy / detail) — outcome が最も淡く、dept に向かって濃くなる ---
+    layout.items.forEach(it => {
+      const fill = withAlpha(it.color, it.kind === 'outcome' ? 0.40 : it.kind === 'strategy' ? 0.60 : 0.80);
+      $svg.appendChild(svgEl('rect', {
+        x: it.x, y: it.y, width: it.w, height: it.h,
+        rx: 8, class: 'item-box', fill,
+        'data-id': it.id,
+        style: `--dept-color: ${it.color}`
+      }));
+      // Text: foreignObject + BudouX 挿入の <wbr> + CSS word-break: keep-all
+      const hasDate = it.dueDate && (it.kind === 'strategy' || it.kind === 'outcome');
+      // fo 幅は computeBoxHeight の avail と完全一致 (期日バッジは corner に重ねる)
+      const fo = svgEl('foreignObject', {
+        x: it.x + BOX_PAD_X/2, y: it.y + 2,
+        width: Math.max(20, it.w - BOX_PAD_X),
+        height: it.h - 4
+      });
+      const xhtmlNS = 'http://www.w3.org/1999/xhtml';
+      const div = document.createElementNS(xhtmlNS, 'div');
+      div.setAttribute('class', 'item-fo');
+      div.innerHTML = renderItemHTML(it.text);
+      fo.appendChild(div);
+      $svg.appendChild(fo);
+      if (hasDate) {
+        const short = it.dueDate.replace(/^\d{4}-0?/, '').replace(/-0?/, '/');
+        $svg.appendChild(svgText(it.x + it.w - 6, it.y + it.h - 5, short, { class: 'item-date' }));
+      }
+    });
+
+    // 集計用: 全 detail item を保持 (popover で参照)
+    window._allDetails = layout.items.filter(x => x.kind === 'detail');
+
+    // --- Hover / click handlers ---
+    $svg.querySelectorAll('.item-box').forEach(rect => {
+      const id = rect.getAttribute('data-id');
+      const item = layout.items.find(x => x.id === id);
+      if (!item) return;
+      rect.addEventListener('mouseenter', (e) => showPopover(e, item));
+      rect.addEventListener('mousemove', (e) => positionPopover(e));
+      rect.addEventListener('mouseleave', () => hidePopover());
+    });
+  }
+
+  function withAlpha(hex, alpha) {
+    const m = hex.match(/^#?([0-9a-f]{3}|[0-9a-f]{6})$/i);
+    if (!m) return hex;
+    let h = m[1];
+    if (h.length === 3) h = h.split('').map(c => c+c).join('');
+    const r = parseInt(h.slice(0,2), 16), g = parseInt(h.slice(2,4), 16), b = parseInt(h.slice(4,6), 16);
+    return `rgba(${r},${g},${b},${alpha})`;
+  }
+
+  function _uniq(arr) { return Array.from(new Set(arr.filter(Boolean))); }
+  function _latestDate(arr) {
+    const filtered = arr.map(normalizeDate).filter(Boolean).sort();
+    return filtered.length ? filtered[filtered.length - 1] : '';
+  }
+  // 進捗バッジ (class 属性への Sheets 値注入を whitelist で防止)
+  const _PROGRESS_ALLOWED = ['未着手', '進行中', '完了', '停止'];
+  function _progressBadge(prog, count) {
+    const cls = _PROGRESS_ALLOWED.includes(prog) ? prog : 'default';
+    const label = count != null ? `${escapeHtml(prog)} ${count}` : escapeHtml(prog || '—');
+    return `<span class="badge badge-${cls}">${label}</span>`;
+  }
+  function _progressSummary(arr) {
+    const counts = {};
+    arr.forEach(p => { if (p) counts[p] = (counts[p] || 0) + 1; });
+    return _PROGRESS_ALLOWED
+      .filter(k => counts[k])
+      .map(k => _progressBadge(k, counts[k]))
+      .join(' ');
+  }
+
+  function showPopover(e, item) {
+    // pop-band の背景は validated hex に限定 (CSS injection 対策)
+    const bandColor = _validateHex(item.color);
+    let html = `<div class="pop-band" style="background:${bandColor}"></div>`;
+    html += `<div class="pop-title">${escapeHtml(item.text || '')}</div>`;
+    html += `<div class="pop-kv">`;
+    const subDept = item.rec && item.rec.sub_department ? ' / ' + item.rec.sub_department : '';
+    html += kv('部署', (item.dept || '') + subDept);
+    html += kv('サイド', item.side);
+    html += kv('レイヤー', item.kind === 'outcome' ? '成果' : item.kind === 'strategy' ? '作戦' : '詳細');
+    if (item.rec) {
+      // 詳細（単一レコード）
+      if (item.rec.outcome && item.kind !== 'outcome')     html += kv('成果', item.rec.outcome);
+      if (item.rec.strategy && item.kind !== 'strategy')   html += kv('作戦', item.rec.strategy);
+      html += kv('担当', item.rec.owner || '—');
+      html += kv('期日', normalizeDate(item.rec.due_date) || '—');
+      html += kvRaw('進捗', _progressBadge(item.rec.progress || '—'));
+      html += kv('編集者', item.rec.editor || '—');
+      html += kv('更新日', normalizeDate(item.rec.updated_at) || '—');
+    } else {
+      // 成果 / 作戦: 配下の詳細レコードを集計
+      if (item.kind === 'strategy' && item.outcome) {
+        html += kv('成果', item.outcome);
+      }
+      const children = (window._allDetails || []).filter(d =>
+        d.side === item.side && d.dept === item.dept &&
+        (item.kind === 'strategy'
+          ? (d.outcome === item.outcome && d.strategy === item.strategy)
+          : (d.outcome === item.outcome))
+      );
+      const owners = _uniq(children.map(c => c.rec && c.rec.owner));
+      const editors = _uniq(children.map(c => c.rec && c.rec.editor));
+      const progresses = children.map(c => c.rec && c.rec.progress).filter(Boolean);
+      const dueMax = _latestDate(children.map(c => c.rec && c.rec.due_date));
+      const updMax = _latestDate(children.map(c => c.rec && c.rec.updated_at));
+      html += kv('担当', owners.length ? owners.join(' / ') : '—');
+      html += kv('期日', dueMax || '—');
+      html += kvRaw('進捗', progresses.length ? _progressSummary(progresses) : escapeHtml('—'));
+      html += kv('編集者', editors.length ? editors.join(' / ') : '—');
+      html += kv('更新日', updMax || '—');
+      html += kv('詳細数', String(children.length));
+    }
+    html += `</div>`;
+    $popover.innerHTML = html;
+    $popover.classList.add('visible');
+    positionPopover(e);
+  }
+  // 値を必ずエスケープして注入 (デフォルト)
+  function kv(k, v) {
+    return `<div class="pop-k">${escapeHtml(k)}</div><div class="pop-v">${escapeHtml(v == null ? '' : v)}</div>`;
+  }
+  // 値がすでに信頼できる HTML の場合のみ使う (badge 等の内部生成 HTML)
+  function kvRaw(k, htmlValue) {
+    return `<div class="pop-k">${escapeHtml(k)}</div><div class="pop-v">${htmlValue}</div>`;
+  }
+  function positionPopover(e) {
+    const pad = 12;
+    const w = $popover.offsetWidth || 320;
+    const h = $popover.offsetHeight || 200;
+    let x = e.clientX + pad;
+    let y = e.clientY + pad;
+    if (x + w > window.innerWidth - 12) x = e.clientX - w - pad;
+    if (y + h > window.innerHeight - 12) y = e.clientY - h - pad;
+    $popover.style.left = x + 'px';
+    $popover.style.top = y + 'px';
+  }
+  function hidePopover() { $popover.classList.remove('visible'); }
+
+  function escapeHtml(s) {
+    return String(s == null ? '' : s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  }
+
+  // ============================================================
+  //  Milestone table
+  // ============================================================
+  function renderMilestone(msRows, deptColors) {
+    const objs = rowsToObjects(msRows || []);
+    if (objs.length === 0) {
+      $msContent.innerHTML = '<div class="loading">マイルストーン行がまだありません。スプシの「マイルストーン」タブに追加してください。</div>';
+      return;
+    }
+    // Discover month columns from header keys pattern: YYYY-MM_(target|actual)
+    const header = Object.keys(objs[0]);
+    const months = [];
+    const seen = new Set();
+    header.forEach(h => {
+      const m = h.match(/^(\d{4}-\d{2})_(target|actual)$/);
+      if (m && !seen.has(m[1])) { months.push(m[1]); seen.add(m[1]); }
+    });
+
+    let html = '<div class="ms-scroll"><table class="ms-table"><thead><tr>';
+    html += '<th class="sticky-l">部署 / 作戦 / メトリック</th>';
+    months.forEach(m => { html += `<th>${m}</th>`; });
+    html += '</tr></thead><tbody>';
+
+    objs.forEach(o => {
+      const dept = o.department || '';
+      const color = _validateHex(deptColors[dept] || '#888');
+      html += '<tr>';
+      html += `<td class="sticky-l"><span class="ms-band" style="background:${color}"></span>` +
+              `<strong>${escapeHtml(dept)}</strong> / ${escapeHtml(o.strategy_label || '')} <br>` +
+              `<span style="color:var(--color-text-muted); font-size:11px;">${escapeHtml(o.metric || '')} (${escapeHtml(o.unit || '')})</span></td>`;
+      months.forEach(m => {
+        const t = o[`${m}_target`];
+        const a = o[`${m}_actual`];
+        const tNum = parseFloat(t), aNum = parseFloat(a);
+        const rate = (Number.isFinite(tNum) && tNum > 0 && Number.isFinite(aNum)) ? aNum / tNum : null;
+        const cls = rate == null ? 'rate-idle' :
+                    rate >= 1.0 ? 'rate-good' :
+                    rate >= 0.8 ? 'rate-mid' : 'rate-low';
+        const pct = rate == null ? 0 : Math.min(100, rate * 100);
+        html += `<td><div class="ms-cell-inner">`;
+        html += `<span class="ms-target">目標 ${escapeHtml(t) || '—'}</span>`;
+        html += `<span class="ms-actual">実績 ${escapeHtml(a) || '—'}</span>`;
+        html += `<span class="ms-bar"><span class="ms-bar-fill ${cls}" style="width:${pct}%"></span></span>`;
+        html += `</div></td>`;
+      });
+      html += '</tr>';
+    });
+    html += '</tbody></table></div>';
+    $msContent.innerHTML = html;
+  }
+
+  // ============================================================
+  //  Load all
+  // ============================================================
+  const REQUIRED_COMMIT_COLS = ['id', 'side', 'department', 'outcome', 'strategy', 'detail'];
+  let _loadToken = 0;   // 並行 reload の stale 結果を捨てるための token
+
+  async function loadAll() {
+    const token = ++_loadToken;
+    $status.style.display = 'none';
+    $status.textContent = '';
+    $syncTime.textContent = '読込中…';
+    try {
+      const wb = await fetchWorkbook();
+      if (token !== _loadToken) return;   // 新しい reload が走った場合は破棄
+      const commitRows = wb.rowsByName['コミットメントリスト'];
+      const msRows = wb.rowsByName['マイルストーン'];
+      const legendRows = wb.rowsByName['凡例'];
+
+      if (!commitRows) throw new Error('スプシに「コミットメントリスト」タブが見つかりません。bootstrap-sheet.gs を Apps Script で実行してタブを作成してください。');
+
+      // 必須ヘッダー検証 (Sheets 列名タイポで silently 空値化されないように)
+      // 日本語ヘッダーも受け付けるため normalize してから検査
+      const commitHeader = (commitRows[0] || []).map(c => _normalizeHeader(c));
+      const missing = REQUIRED_COMMIT_COLS.filter(k => !commitHeader.includes(k));
+      if (missing.length) {
+        throw new Error(`「コミットメントリスト」タブに必須列が足りません: ${missing.join(', ')}`);
+      }
+
+      const legend = parseLegend(legendRows);
+      const deptColors = {};
+      const deptLabels = {};
+      const deptOrder = [];
+      legend.forEach(l => { deptColors[l.key] = l.color; deptLabels[l.key] = l.label || l.key; deptOrder.push(l.key); });
+
+      const records = rowsToObjects(commitRows);
+      const tree = buildTree(records, deptOrder);
+      const layout = layoutNetwork(tree, deptOrder, deptColors);
+      layout.deptLabels = deptLabels;
+      renderNetwork(layout);
+
+      renderMilestone(msRows, deptColors);
+
+      if (token !== _loadToken) return;
+      const now = new Date();
+      $syncTime.textContent = `最終同期 ${now.getHours()}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
+    } catch (e) {
+      if (token !== _loadToken) return;
+      console.error(e);
+      $status.style.display = 'block';
+      $status.textContent = `エラー: ${e.message || e}`;
+      $syncTime.textContent = '読込失敗';
+    }
+  }
+
+  $reloadBtn.addEventListener('click', () => {
+    _wbPromise = null;
+    _measureCache.clear();   // フォント再読込等で box height が変わり得る
+    loadAll();
+  });
+
+  // ============================================================
+  //  Mode toggle: 定量 / 定性 / 全体
+  // ============================================================
+  const $netViewport = document.getElementById('network-viewport');
+  const $netBtns = document.querySelectorAll('.net-btn');
+
+  function setMode(mode) {
+    $netViewport.classList.remove('mode-quant', 'mode-qual', 'mode-overview');
+    $netViewport.classList.add('mode-' + mode);
+    $netBtns.forEach(b => b.classList.toggle('active', b.dataset.mode === mode));
+
+    // scroll 位置は width transition が終わったタイミングで設定
+    // (overview → focus に切り替えると SVG width が拡大するので延長)
+    const delay = (mode !== 'overview' && $netViewport.dataset.prev === 'overview') ? 420 : 20;
+    if (mode === 'quant') {
+      setTimeout(() => { $netViewport.scrollLeft = 0; }, delay);
+    } else if (mode === 'qual') {
+      setTimeout(() => { $netViewport.scrollLeft = $netViewport.scrollWidth; }, delay);
+    }
+    $netViewport.dataset.prev = mode;
+  }
+
+  $netBtns.forEach(b => b.addEventListener('click', () => setMode(b.dataset.mode)));
+  setMode('quant'); // 初期状態
+
+  // ユーザー手動スクロール時のボタン active 状態同期（snap で片側に寄ったら反映）
+  let _scrollSyncTimer;
+  $netViewport.addEventListener('scroll', () => {
+    if ($netViewport.classList.contains('mode-overview')) return;
+    clearTimeout(_scrollSyncTimer);
+    _scrollSyncTimer = setTimeout(() => {
+      const maxScroll = $netViewport.scrollWidth - $netViewport.clientWidth;
+      if (maxScroll <= 0) return;
+      const isQual = $netViewport.scrollLeft > maxScroll * 0.5;
+      const activeMode = isQual ? 'qual' : 'quant';
+      $netBtns.forEach(b => {
+        if (b.dataset.mode === activeMode) b.classList.add('active');
+        else if (b.dataset.mode !== 'overview') b.classList.remove('active');
+      });
+    }, 220);
+  }, { passive: true });
+
+  document.addEventListener('keydown', (e) => {
+    if (document.activeElement && ['INPUT','TEXTAREA'].includes(document.activeElement.tagName)) return;
+    if (e.key === 'ArrowLeft')  setMode('quant');
+    if (e.key === 'ArrowRight') setMode('qual');
+    if (e.key === 'Escape' || e.key === '0') setMode('overview');
+  });
+
+  // ============================================================
+  //  BudouX (word-wrap for Japanese)
+  // ============================================================
+  async function loadBudoux() {
+    try {
+      const mod = await import('https://esm.sh/budoux@0.7.0');
+      _budouxParser = mod.loadDefaultJapaneseParser();
+      // MutationObserver は廃止 (SVG 内更新のたびに発火して重い + milestone 数字にも作用してしまう)。
+      // 静的な h1〜h4 に一度だけ適用。SVG foreignObject 内は render 側で個別に translateHTMLString 済み。
+      document.querySelectorAll('.app-header h1, main h1, main h2, main h3').forEach(el => {
+        if (el.dataset.budoux === '1') return;
+        try { el.innerHTML = _budouxParser.translateHTMLString(el.innerHTML); el.dataset.budoux = '1'; } catch (_) {}
+      });
+    } catch (e) {
+      console.warn('BudouX 読込失敗（機能は継続）', e);
+    }
+  }
+
+  // BudouX とフォント読込完了を待ってから初期描画（測定精度確保）
+  Promise.all([
+    loadBudoux(),
+    (document.fonts && document.fonts.ready) ? document.fonts.ready.catch(() => {}) : Promise.resolve()
+  ]).then(() => loadAll());
+  </script>
+</body>
+</html>

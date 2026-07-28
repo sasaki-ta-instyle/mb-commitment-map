@@ -1,0 +1,96 @@
+# mb-commitment-map — Google Sheets スキーマ
+
+Master スプシは Claude が新規作成する。以下がタブ構造と列定義の正本。
+編集は全てスプシで完結し、`mb-commitment-map.html` は読み込み専用でレンダリングする。
+
+読み込み方式: `https://docs.google.com/spreadsheets/d/<SHEETS_ID>/export?format=xlsx`
+を fetch し、fflate で解凍。`_` `*` prefix タブは HTML 側では非表示（マスタ dropdown 用）。
+
+---
+
+## Tab 1: `コミットメントリスト`（マスタデータ）
+
+1 行 = 1 個の「詳細（小タスク）」。上位の 成果 / 作戦 に紐付き、部署に所属する。
+
+| 列 | Header | 型 | 説明・例 |
+|---|---|---|---|
+| A | `id` | text | `C-001` 等の連番 |
+| B | `side` | 列挙 | `定量` / `定性`（左サイド / 右サイド） |
+| C | `department` | 列挙 | `モール` / `本店` / `CS` / `商品` |
+| D | `sub_department` | 列挙 | 部署に紐付くサブ区分。例: `新規定期` / `CRM` / `LTV` / `Amazon` / `楽天` / `Qoo10` / `停止率` / `解約率` / `復活率` / `管理:既存商品` / `企画+開発:SIMIUS` / `企画+開発:TRIPURE` / `企画+開発:新ブランド` |
+| E | `outcome` | text | 「成果」文言（部署単位の中核成果。同じ成果に複数行が紐付く） |
+| F | `strategy` | text | 「作戦」文言（中目標） |
+| G | `detail` | text | 「詳細」文言（具体策・小タスク本体） |
+| H | `owner` | text | 担当者名（`_members` タブから dropdown 参照） |
+| I | `due_date` | date | 期日 (YYYY-MM-DD) |
+| J | `progress` | 列挙 | `未着手` / `進行中` / `完了` / `停止` |
+| K | `editor` | text | 最終編集者名（`_members` タブから dropdown、手で選択） |
+| L | `updated_at` | date | 手入力（触ったときに更新） |
+
+**重要**: HTML 側でのネットワーク図描画は `department` × `outcome` × `strategy` × `detail` を階層で `outcome → strategy → detail` にグルーピングして描く。同じ `outcome` は同じノードとしてマージされる（`side + department + outcome` の 3 タプルで一意）。
+
+---
+
+## Tab 2: `マイルストーン`（月次数値管理）
+
+作戦単位で月次目標値・実績値・達成率を管理。1 行 = 1 個の作戦の 1 メトリック。
+
+| 列 | Header | 型 |
+|---|---|---|
+| A | `strategy_id` | text (`コミットメントリスト.id` に対応 or 独自) |
+| B | `department` | 列挙（`コミットメントリスト.department` と同じ） |
+| C | `strategy_label` | text（作戦名再掲。可視性優先で冗長に持つ） |
+| D | `metric` | text（例: `新規定期件数` / `LTV` / `停止率 %`） |
+| E | `unit` | text（`件` / `円` / `%` 等） |
+| F〜Q | `2026-04_target` `2026-04_actual` … `2026-09_actual` | number（12 ヶ月 × 2 系列で 24 列、目標と実績） |
+| R〜AC | `2026-10_target` … `2027-03_actual` | 続き |
+
+達成率は HTML 側で `actual / target * 100` で動的計算。スプシに列としては持たない（スプシで計算式にしても良いが、真実は HTML で 1 本化）。
+
+会計期は 2026-04〜2027-03 の 12 ヶ月固定。
+
+---
+
+## Tab 3: `凡例`（部署カラーコード）
+
+HTML 側で参照するカラー正本。編集で色を変えられるようにする（デザインチューニング用）。
+
+| 列 | Header | 型 | 例 |
+|---|---|---|---|
+| A | `key` | text | `モール` / `本店` / `CS` / `商品` |
+| B | `label` | text | 表示名（`key` と同じで良い） |
+| C | `color_hex` | text | `#39D353` / `#F5D944` / `#E5484D` / `#7CE2FE` |
+| D | `display_order` | number | 上から順の縦積み順（1〜4） |
+
+PDF に忠実な既定色:
+- モール: `#39D353` (緑)
+- 本店: `#F5D944` (黄)
+- CS: `#E5484D` (赤)
+- 商品: `#7CE2FE` (水色)
+
+---
+
+## Tab `_members`（プルダウン正本・hidden）
+
+| 列 | Header |
+|---|---|
+| A | `name` |
+
+`owner` / `editor` 列の dropdown が参照する。
+
+---
+
+## Tab `_progress`（プルダウン正本・hidden）
+
+| 列 | Header |
+|---|---|
+| A | `label` |
+
+値: `未着手` / `進行中` / `完了` / `停止`
+
+---
+
+## 共有設定
+
+- 「リンクを知っている全員が閲覧」以上（HTML から匿名 fetch できる状態）
+- 編集権限はメビウス社内メンバー個別に付与
