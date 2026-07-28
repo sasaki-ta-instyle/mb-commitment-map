@@ -15,10 +15,9 @@ const HEADERS = {
   'コミットメントリスト': [
     'id', 'side', 'department', 'sub_department',
     'outcome', 'strategy', 'detail',
-    '連携',
+    'url', '連携',
     'owner', 'due_date', 'progress',
-    'editor', 'updated_at',
-    'url'
+    'editor', 'updated_at'
   ],
   '凡例': ['key', 'label', 'color_hex', 'display_order'],
   '戦略的フォーカス': ['サイド', 'フォーカスラベル', '目標サブ', '大目標'],
@@ -54,15 +53,15 @@ const MEMBERS_SEED = [
 ];
 
 const SAMPLE_COMMITMENTS = [
-  // id, side, dept, sub, outcome, strategy, detail, 連携, owner, due, progress, editor, updated
-  ['C-001', '定量', 'モール',  'Amazon',  'モール売上 +30%',     'Amazon 検索順位を対策',  'ビッグワード 3 語で 3 位以内', '', '佐々木', '2026-09-30', '進行中', '佐々木', '2026-07-26', ''],
-  ['C-002', '定量', '本店',    '新規定期', '新規定期 +40%',       'LP 転換率改善',           'ヒーロー AB テスト実施',     '', '佐々木', '2026-08-31', '未着手', '佐々木', '2026-07-26', ''],
-  ['C-003', '定量', 'CS',      '解約率',   '解約率 5%→3%',         '解約フォーム導線見直し',   'BOTフロー 3 段階質問化',     '', '佐々木', '2026-10-31', '未着手', '佐々木', '2026-07-26', ''],
-  ['C-004', '定量', '商品',    '企画+開発:SIMIUS', 'SIMIUS 新製品 3 本発売', '9 月同時発売キャンペーン', 'PR / LP / パッケージ準備', '', '佐々木', '2026-09-15', '進行中', '佐々木', '2026-07-26', ''],
-  ['C-101', '定性', 'モール',  'Qoo10',    'クチコミ星 4.5 以上',   'レビュー返信ルール策定',   '48h 以内返信 SLA',           '', '佐々木', '2026-08-15', '未着手', '佐々木', '2026-07-26', ''],
-  ['C-102', '定性', '本店',    'CRM',      '会員 NPS +10',          'ステップメール刷新',       'ようこそメール 7 通再設計',   '', '佐々木', '2026-09-30', '未着手', '佐々木', '2026-07-26', ''],
-  ['C-103', '定性', 'CS',      '復活率',   '休眠復活 20%',           '離脱後 30 日フォロー',     '離脱アンケート導入',         '', '佐々木', '2026-11-30', '未着手', '佐々木', '2026-07-26', ''],
-  ['C-104', '定性', '商品',    '管理:既存商品', '既存 SKU 品質向上',  'クレーム率 -50%',          '品質チェックリスト整備',     '', '佐々木', '2026-10-31', '未着手', '佐々木', '2026-07-26', '']
+  // id, side, dept, sub, outcome, strategy, detail, url, 連携, owner, due, progress, editor, updated
+  ['C-001', '定量', 'モール',  'Amazon',  'モール売上 +30%',     'Amazon 検索順位を対策',  'ビッグワード 3 語で 3 位以内', '', '', '佐々木', '2026-09-30', '進行中', '佐々木', '2026-07-26'],
+  ['C-002', '定量', '本店',    '新規定期', '新規定期 +40%',       'LP 転換率改善',           'ヒーロー AB テスト実施',     '', '佐々木', '2026-08-31', '未着手', '佐々木', '2026-07-26'],
+  ['C-003', '定量', 'CS',      '解約率',   '解約率 5%→3%',         '解約フォーム導線見直し',   'BOTフロー 3 段階質問化',     '', '佐々木', '2026-10-31', '未着手', '佐々木', '2026-07-26'],
+  ['C-004', '定量', '商品',    '企画+開発:SIMIUS', 'SIMIUS 新製品 3 本発売', '9 月同時発売キャンペーン', 'PR / LP / パッケージ準備', '', '', '佐々木', '2026-09-15', '進行中', '佐々木', '2026-07-26'],
+  ['C-101', '定性', 'モール',  'Qoo10',    'クチコミ星 4.5 以上',   'レビュー返信ルール策定',   '48h 以内返信 SLA',           '', '佐々木', '2026-08-15', '未着手', '佐々木', '2026-07-26'],
+  ['C-102', '定性', '本店',    'CRM',      '会員 NPS +10',          'ステップメール刷新',       'ようこそメール 7 通再設計',   '', '佐々木', '2026-09-30', '未着手', '佐々木', '2026-07-26'],
+  ['C-103', '定性', 'CS',      '復活率',   '休眠復活 20%',           '離脱後 30 日フォロー',     '離脱アンケート導入',         '', '佐々木', '2026-11-30', '未着手', '佐々木', '2026-07-26'],
+  ['C-104', '定性', '商品',    '管理:既存商品', '既存 SKU 品質向上',  'クレーム率 -50%',          '品質チェックリスト整備',     '', '佐々木', '2026-10-31', '未着手', '佐々木', '2026-07-26']
 ];
 
 function bootstrap() {
@@ -171,15 +170,15 @@ function applyValidations(commit) {
   commit.getRange('C2:C').setDataValidation(
     SpreadsheetApp.newDataValidation().requireValueInList(departments, true).build()
   );
-  // owner (I) / editor (L) → _members  (連携 が H に入ったのでシフト)
-  commit.getRange('I2:I').setDataValidation(
+  // owner (J) / editor (M) → _members  (url/連携 が H/I に入ったのでさらにシフト)
+  commit.getRange('J2:J').setDataValidation(
     SpreadsheetApp.newDataValidation().requireValueInRange(membersRange, true).build()
   );
+  commit.getRange('M2:M').setDataValidation(
+    SpreadsheetApp.newDataValidation().requireValueInRange(membersRange, true).build()
+  );
+  // progress (L) → _progress
   commit.getRange('L2:L').setDataValidation(
-    SpreadsheetApp.newDataValidation().requireValueInRange(membersRange, true).build()
-  );
-  // progress (K) → _progress
-  commit.getRange('K2:K').setDataValidation(
     SpreadsheetApp.newDataValidation().requireValueInRange(progressRange, true).build()
   );
 }
