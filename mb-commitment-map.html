@@ -383,46 +383,22 @@
   }
 
   /* ============ Cross-links (部署をまたぐ連携) ============ */
+  /* 既定は完全非表示。繋がっているボックスに hover したときだけ表示 */
   .cross-link__path {
     fill: none;
-    stroke: var(--color-accent);
+    stroke: #C4C9CB;
     stroke-width: 1.8;
     stroke-linecap: round;
-    stroke-opacity: 0.38;
+    stroke-opacity: 0;
     stroke-dasharray: 6 4;
-    transition: stroke-opacity 120ms ease, stroke-width 120ms ease;
+    transition: stroke-opacity 140ms ease, stroke-width 140ms ease;
     pointer-events: none;
   }
   .cross-link__path.is-dotted { stroke-dasharray: 2 4; }
   .cross-link__path.is-solid { stroke-dasharray: none; }
-  .cross-link__hit {
-    fill: none;
-    stroke: transparent;
-    stroke-width: 14;
-    stroke-linecap: round;
-    cursor: help;
-  }
-  .cross-link:hover .cross-link__path {
-    stroke-opacity: 1;
-    stroke-width: 2.4;
-  }
-  .cross-link__label {
-    opacity: 0;
-    transition: opacity 120ms ease;
-    pointer-events: none;
-  }
-  .cross-link:hover .cross-link__label { opacity: 1; }
-  .cross-link__label-bg {
-    fill: rgba(255,255,255,.94);
-    stroke: var(--color-accent);
-    stroke-width: 1;
-  }
-  .cross-link__label-text {
-    fill: #1c2a2f;
-    font-size: 11px;
-    font-weight: 600;
-    text-anchor: middle;
-    dominant-baseline: middle;
+  .cross-link.is-active .cross-link__path {
+    stroke-opacity: 0.85;
+    stroke-width: 2.2;
   }
 
   /* ============ Legend ============ */
@@ -1508,26 +1484,22 @@
     window._allDetails = layout.items.filter(x => x.kind === 'detail');
 
     // --- Cross-links (部署をまたぐ連携) ---
-    // 通常のあみだくじ線と別レイヤー。デフォルトは低透明度の破線 + hover で強調 + ラベル表示。
+    // 既定は完全非表示。片端のボックスに hover したときだけ is-active を付けて表示する。
+    // item.id → その item が端点になっている cross-link 要素のリスト、を保持
+    const crossLinkByItemId = new Map();
     (layout.crossLinks || []).forEach((cl, idx) => {
       const a = cl.from, b = cl.to;
       const acx = a.x + a.w/2, acy = a.y + a.h/2;
       const bcx = b.x + b.w/2, bcy = b.y + b.h/2;
       const dx = bcx - acx, dy = bcy - acy;
-      // 出入り辺は距離主軸で決める
       let fx, fy, tx, ty;
       if (Math.abs(dx) >= Math.abs(dy)) {
-        fx = dx > 0 ? a.x + a.w : a.x;
-        fy = acy;
-        tx = dx > 0 ? b.x : b.x + b.w;
-        ty = bcy;
+        fx = dx > 0 ? a.x + a.w : a.x; fy = acy;
+        tx = dx > 0 ? b.x : b.x + b.w; ty = bcy;
       } else {
-        fx = acx;
-        fy = dy > 0 ? a.y + a.h : a.y;
-        tx = bcx;
-        ty = dy > 0 ? b.y : b.y + b.h;
+        fx = acx; fy = dy > 0 ? a.y + a.h : a.y;
+        tx = bcx; ty = dy > 0 ? b.y : b.y + b.h;
       }
-      // 控えめな bulge の cubic bezier
       const midDx = tx - fx, midDy = ty - fy;
       const dist = Math.hypot(midDx, midDy) || 1;
       const bulge = Math.min(dist * 0.25, 160);
@@ -1537,42 +1509,41 @@
       const c2x = fx + midDx * 0.75 + nx * bulge;
       const c2y = fy + midDy * 0.75 + ny * bulge;
       const d = `M ${fx} ${fy} C ${c1x} ${c1y} ${c2x} ${c2y} ${tx} ${ty}`;
-      const midX = (c1x + c2x) / 2;
-      const midY = (c1y + c2y) / 2;
 
-      const g = svgEl('g', { class: 'cross-link', 'data-idx': String(idx) });
-      // 可視 path
+      const g = svgEl('g', {
+        class: 'cross-link',
+        'data-idx': String(idx),
+        'data-from-item': a.id,
+        'data-to-item': b.id
+      });
       const styleClass = cl.style === 'dotted' ? 'cross-link__path is-dotted'
                        : cl.style === 'solid'  ? 'cross-link__path is-solid'
                        : 'cross-link__path';
       g.appendChild(svgEl('path', { d, class: styleClass }));
-      // hover 判定を広く取る透明 path
-      g.appendChild(svgEl('path', { d, class: 'cross-link__hit' }));
-      // ラベル (hover で表示)
-      if (cl.label) {
-        const lg = svgEl('g', { class: 'cross-link__label' });
-        // 背景 rect の幅を近似計算 (文字数 * 6.5 + padding)
-        const approxW = Math.max(40, cl.label.length * 12 + 20);
-        const approxH = 22;
-        lg.appendChild(svgEl('rect', {
-          x: midX - approxW/2, y: midY - approxH/2,
-          width: approxW, height: approxH, rx: 6,
-          class: 'cross-link__label-bg'
-        }));
-        lg.appendChild(svgText(midX, midY + 4, cl.label, { class: 'cross-link__label-text' }));
-        g.appendChild(lg);
-      }
       $svg.appendChild(g);
+
+      if (!crossLinkByItemId.has(a.id)) crossLinkByItemId.set(a.id, []);
+      if (!crossLinkByItemId.has(b.id)) crossLinkByItemId.set(b.id, []);
+      crossLinkByItemId.get(a.id).push(g);
+      crossLinkByItemId.get(b.id).push(g);
     });
+    // 既存の popover ハンドラーに乗せて、hover 時に対応する cross-link を .is-active に
+    layout._crossLinkByItemId = crossLinkByItemId;
 
     // --- Hover / click handlers ---
+    const _xlinkMap = layout._crossLinkByItemId || new Map();
+    function _activateXLinks(id, on) {
+      const list = _xlinkMap.get(id);
+      if (!list) return;
+      for (const g of list) g.classList.toggle('is-active', !!on);
+    }
     $svg.querySelectorAll('.item-box').forEach(rect => {
       const id = rect.getAttribute('data-id');
       const item = layout.items.find(x => x.id === id);
       if (!item) return;
-      rect.addEventListener('mouseenter', (e) => showPopover(e, item));
+      rect.addEventListener('mouseenter', (e) => { showPopover(e, item); _activateXLinks(id, true); });
       rect.addEventListener('mousemove', (e) => positionPopover(e));
-      rect.addEventListener('mouseleave', () => hidePopover());
+      rect.addEventListener('mouseleave', () => { hidePopover(); _activateXLinks(id, false); });
     });
   }
 
