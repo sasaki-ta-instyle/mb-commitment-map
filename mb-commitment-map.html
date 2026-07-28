@@ -794,7 +794,7 @@
     '担当': 'owner', 'owner': 'owner',
     '期日': 'due_date', 'due_date': 'due_date',
     '進捗': 'progress', 'progress': 'progress',
-    '編集者': 'editor', 'editor': 'editor',
+    '編集者': 'editor', '最終編集者': 'editor', 'editor': 'editor',
     '更新日': 'updated_at', 'updated_at': 'updated_at',
     '連携': 'links', '関連': 'links', 'links': 'links',
     // マイルストーン
@@ -1624,7 +1624,7 @@
       html += kv('担当', item.rec.owner || '—');
       html += kv('期日', normalizeDate(item.rec.due_date) || '—');
       html += kvRaw('進捗', _progressBadge(item.rec.progress || '—'));
-      html += kv('編集者', item.rec.editor || '—');
+      html += kv('最終編集者', item.rec.editor || '—');
       html += kv('更新日', normalizeDate(item.rec.updated_at) || '—');
     } else {
       // 成果 / 作戦: 配下の詳細レコードを集計
@@ -1645,7 +1645,7 @@
       html += kv('担当', owners.length ? owners.join(' / ') : '—');
       html += kv('期日', dueMax || '—');
       html += kvRaw('進捗', progresses.length ? _progressSummary(progresses) : escapeHtml('—'));
-      html += kv('編集者', editors.length ? editors.join(' / ') : '—');
+      html += kv('最終編集者', editors.length ? editors.join(' / ') : '—');
       html += kv('更新日', updMax || '—');
       html += kv('詳細数', String(children.length));
     }

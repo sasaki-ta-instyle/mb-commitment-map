@@ -25,7 +25,7 @@ Master スプシは Claude が新規作成する。以下がタブ構造と列�
 | I | `owner` | text | 担当者名（`_members` タブから dropdown 参照） |
 | J | `due_date` | date | 期日 (YYYY-MM-DD) |
 | K | `progress` | 列挙 | `未着手` / `進行中` / `完了` / `停止` |
-| L | `editor` | text | 最終編集者名（`_members` タブから dropdown、手で選択） |
+| L | `editor` / `最終編集者` | text | 最終編集者名（`_members` タブから dropdown、手で選択） |
 | M | `updated_at` | date | 手入力（触ったときに更新） |
 
 **重要**: HTML 側でのネットワーク図描画は `department` × `outcome` × `strategy` × `detail` を階層で `outcome → strategy → detail` にグルーピングして描く。同じ `outcome` は同じノードとしてマージされる（`side + department + outcome` の 3 タプルで一意）。
