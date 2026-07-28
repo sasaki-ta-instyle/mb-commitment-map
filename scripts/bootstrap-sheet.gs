@@ -20,6 +20,7 @@ const HEADERS = {
   ],
   '凡例': ['key', 'label', 'color_hex', 'display_order'],
   '戦略的フォーカス': ['サイド', 'フォーカスラベル', '目標サブ', '大目標'],
+  '連携': ['from', 'to', 'label', 'style'],
   '_members': ['name'],
   '_progress': ['label']
 };
@@ -113,6 +114,11 @@ function bootstrap() {
   }
   goals.setFrozenRows(1);
 
+  // 3c. 連携（部署をまたぐ関連。空でOK、必要になったら書き足す）
+  const links = getOrCreateSheet(ss, '連携');
+  writeHeader(links, HEADERS['連携']);
+  links.setFrozenRows(1);
+
   // 4. _members
   const members = getOrCreateSheet(ss, '_members', true);
   writeHeader(members, HEADERS['_members']);
@@ -134,7 +140,7 @@ function bootstrap() {
   // 7. データ検証（プルダウン）を主タブに設定
   applyValidations(commit);
 
-  SpreadsheetApp.getUi().alert('bootstrap 完了。コミットメントリスト・マイルストーン・凡例・戦略的フォーカス・_members・_progress を初期化しました。');
+  SpreadsheetApp.getUi().alert('bootstrap 完了。コミットメントリスト・マイルストーン・凡例・戦略的フォーカス・連携・_members・_progress を初期化しました。');
 }
 
 function getOrCreateSheet(ss, name, hidden) {

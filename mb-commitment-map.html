@@ -382,6 +382,49 @@
     stroke-linecap: round;
   }
 
+  /* ============ Cross-links (部署をまたぐ連携) ============ */
+  .cross-link__path {
+    fill: none;
+    stroke: var(--color-accent);
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-opacity: 0.38;
+    stroke-dasharray: 6 4;
+    transition: stroke-opacity 120ms ease, stroke-width 120ms ease;
+    pointer-events: none;
+  }
+  .cross-link__path.is-dotted { stroke-dasharray: 2 4; }
+  .cross-link__path.is-solid { stroke-dasharray: none; }
+  .cross-link__hit {
+    fill: none;
+    stroke: transparent;
+    stroke-width: 14;
+    stroke-linecap: round;
+    cursor: help;
+  }
+  .cross-link:hover .cross-link__path {
+    stroke-opacity: 1;
+    stroke-width: 2.4;
+  }
+  .cross-link__label {
+    opacity: 0;
+    transition: opacity 120ms ease;
+    pointer-events: none;
+  }
+  .cross-link:hover .cross-link__label { opacity: 1; }
+  .cross-link__label-bg {
+    fill: rgba(255,255,255,.94);
+    stroke: var(--color-accent);
+    stroke-width: 1;
+  }
+  .cross-link__label-text {
+    fill: #1c2a2f;
+    font-size: 11px;
+    font-weight: 600;
+    text-anchor: middle;
+    dominant-baseline: middle;
+  }
+
   /* ============ Legend ============ */
   .legend {
     display: flex; flex-wrap: wrap; gap: 12px 20px;
@@ -766,7 +809,11 @@
     // 大目標 / 戦略的フォーカス
     'フォーカスラベル': 'focus_label', '列ラベル': 'focus_label', 'focus_label': 'focus_label',
     '目標サブ': 'goal_sub', '戦略的フォーカス（1行目）': 'goal_sub', '戦略的フォーカス(1行目)': 'goal_sub', '1行目': 'goal_sub', 'goal_sub': 'goal_sub',
-    '目標': 'goal_main', '大目標': 'goal_main', '戦略的フォーカス（2行目）': 'goal_main', '戦略的フォーカス(2行目)': 'goal_main', '2行目': 'goal_main', 'goal_main': 'goal_main'
+    '目標': 'goal_main', '大目標': 'goal_main', '戦略的フォーカス（2行目）': 'goal_main', '戦略的フォーカス(2行目)': 'goal_main', '2行目': 'goal_main', 'goal_main': 'goal_main',
+    // 連携（部署をまたぐ関連）
+    'From': 'from', 'from': 'from', '起点': 'from', '元': 'from',
+    'To': 'to', 'to': 'to', '終点': 'to', '先': 'to',
+    'Style': 'style', 'style': 'style', '線種': 'style', 'スタイル': 'style'
   };
 
   // 既知フィールドのセット（ヘッダー行自動検出用。行頭に自由記述の装飾行があってもヘッダーを正しく拾えるようにする）
@@ -776,7 +823,8 @@
     'strategy_id', 'strategy_label', 'metric', 'unit',
     'key', 'label', 'color_hex', 'display_order',
     'focus_label', 'goal_sub', 'goal_main',
-    'name'
+    'name',
+    'from', 'to', 'style'
   ]);
   function _normalizeHeader(name) {
     const n = String(name || '').trim();
@@ -857,6 +905,23 @@
     return out;
   }
 
+  // 連携タブ: 部署をまたぐ関連を明示。
+  // from/to は以下いずれか:
+  //   - "C-xxx"                 → コミットメントリスト.id で detail を特定
+  //   - "<dept>/<strategy>"     → strategy を特定 (両 side にヒットすれば両方繋ぐ)
+  //   - "<dept>/<outcome>"      → outcome を特定 (fallback、上記に一致しない場合)
+  function parseLinks(rows) {
+    const objs = rowsToObjects(rows || []);
+    return objs
+      .filter(o => (o.from || '').trim() && (o.to || '').trim())
+      .map(o => ({
+        from: o.from.trim(),
+        to: o.to.trim(),
+        label: (o.label || '').trim(),
+        style: ((o.style || '').trim().toLowerCase() || 'dashed')
+      }));
+  }
+
   // color_hex を厳格に #RGB / #RRGGBB のみ許可 (CSS injection 対策)
   function _validateHex(s) {
     const m = /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.exec(String(s || '').trim());
@@ -891,8 +956,61 @@
     return tree;
   }
 
+  // 連携 spec を items に対して解決 → 描画用 crossLinks を返す
+  function resolveCrossLinks(spec, items) {
+    if (!spec || spec.length === 0) return [];
+    const detailByRecId = new Map();
+    const strategyByKey = new Map();   // key = "dept/strategy" → item[]
+    const outcomeByKey = new Map();    // key = "dept/outcome"  → item[]
+    for (const it of items) {
+      if (it.kind === 'detail' && it.rec && it.rec.id) {
+        detailByRecId.set(it.rec.id, it);
+      } else if (it.kind === 'strategy') {
+        const k = `${it.dept}/${it.strategy}`;
+        if (!strategyByKey.has(k)) strategyByKey.set(k, []);
+        strategyByKey.get(k).push(it);
+      } else if (it.kind === 'outcome') {
+        const k = `${it.dept}/${it.outcome}`;
+        if (!outcomeByKey.has(k)) outcomeByKey.set(k, []);
+        outcomeByKey.get(k).push(it);
+      }
+    }
+    function resolve(ref) {
+      if (!ref) return [];
+      // C-xxx (case-insensitive prefix c-)
+      if (/^[cC]-/.test(ref)) {
+        const it = detailByRecId.get(ref);
+        return it ? [it] : [];
+      }
+      if (ref.includes('/')) {
+        const hitS = strategyByKey.get(ref);
+        if (hitS) return hitS;
+        const hitO = outcomeByKey.get(ref);
+        if (hitO) return hitO;
+      }
+      return [];
+    }
+    const out = [];
+    for (const s of spec) {
+      const froms = resolve(s.from);
+      const tos = resolve(s.to);
+      if (froms.length === 0 || tos.length === 0) {
+        console.warn('cross-link: 参照解決失敗', s);
+        continue;
+      }
+      // n×m 全組み合わせで線を張る (通常は 1×1)
+      for (const a of froms) {
+        for (const b of tos) {
+          if (a === b) continue;
+          out.push({ from: a, to: b, label: s.label, style: s.style });
+        }
+      }
+    }
+    return out;
+  }
+
   // Compute layout coordinates
-  function layoutNetwork(tree, deptOrder, deptColors, goals) {
+  function layoutNetwork(tree, deptOrder, deptColors, goals, linkSpec) {
     goals = goals || DEFAULT_GOALS;
     // Constants
     const W = 1800;
@@ -1170,7 +1288,8 @@
       pushLink(from.x, from.y, deptX, deptY, d.color, 0.32);
     });
 
-    return { W, H: totalH, cols, deptBlocks, items, links, deptOrder, deptColors, goals };
+    const crossLinks = resolveCrossLinks(linkSpec, items);
+    return { W, H: totalH, cols, deptBlocks, items, links, deptOrder, deptColors, goals, crossLinks };
   }
 
   function countDetails(deptOutcomes) {
@@ -1355,6 +1474,64 @@
     // 集計用: 全 detail item を保持 (popover で参照)
     window._allDetails = layout.items.filter(x => x.kind === 'detail');
 
+    // --- Cross-links (部署をまたぐ連携) ---
+    // 通常のあみだくじ線と別レイヤー。デフォルトは低透明度の破線 + hover で強調 + ラベル表示。
+    (layout.crossLinks || []).forEach((cl, idx) => {
+      const a = cl.from, b = cl.to;
+      const acx = a.x + a.w/2, acy = a.y + a.h/2;
+      const bcx = b.x + b.w/2, bcy = b.y + b.h/2;
+      const dx = bcx - acx, dy = bcy - acy;
+      // 出入り辺は距離主軸で決める
+      let fx, fy, tx, ty;
+      if (Math.abs(dx) >= Math.abs(dy)) {
+        fx = dx > 0 ? a.x + a.w : a.x;
+        fy = acy;
+        tx = dx > 0 ? b.x : b.x + b.w;
+        ty = bcy;
+      } else {
+        fx = acx;
+        fy = dy > 0 ? a.y + a.h : a.y;
+        tx = bcx;
+        ty = dy > 0 ? b.y : b.y + b.h;
+      }
+      // 控えめな bulge の cubic bezier
+      const midDx = tx - fx, midDy = ty - fy;
+      const dist = Math.hypot(midDx, midDy) || 1;
+      const bulge = Math.min(dist * 0.25, 160);
+      const nx = -midDy / dist, ny = midDx / dist;
+      const c1x = fx + midDx * 0.25 + nx * bulge;
+      const c1y = fy + midDy * 0.25 + ny * bulge;
+      const c2x = fx + midDx * 0.75 + nx * bulge;
+      const c2y = fy + midDy * 0.75 + ny * bulge;
+      const d = `M ${fx} ${fy} C ${c1x} ${c1y} ${c2x} ${c2y} ${tx} ${ty}`;
+      const midX = (c1x + c2x) / 2;
+      const midY = (c1y + c2y) / 2;
+
+      const g = svgEl('g', { class: 'cross-link', 'data-idx': String(idx) });
+      // 可視 path
+      const styleClass = cl.style === 'dotted' ? 'cross-link__path is-dotted'
+                       : cl.style === 'solid'  ? 'cross-link__path is-solid'
+                       : 'cross-link__path';
+      g.appendChild(svgEl('path', { d, class: styleClass }));
+      // hover 判定を広く取る透明 path
+      g.appendChild(svgEl('path', { d, class: 'cross-link__hit' }));
+      // ラベル (hover で表示)
+      if (cl.label) {
+        const lg = svgEl('g', { class: 'cross-link__label' });
+        // 背景 rect の幅を近似計算 (文字数 * 6.5 + padding)
+        const approxW = Math.max(40, cl.label.length * 12 + 20);
+        const approxH = 22;
+        lg.appendChild(svgEl('rect', {
+          x: midX - approxW/2, y: midY - approxH/2,
+          width: approxW, height: approxH, rx: 6,
+          class: 'cross-link__label-bg'
+        }));
+        lg.appendChild(svgText(midX, midY + 4, cl.label, { class: 'cross-link__label-text' }));
+        g.appendChild(lg);
+      }
+      $svg.appendChild(g);
+    });
+
     // --- Hover / click handlers ---
     $svg.querySelectorAll('.item-box').forEach(rect => {
       const id = rect.getAttribute('data-id');
@@ -1537,6 +1714,7 @@
       const msRows = wb.rowsByName['マイルストーン'];
       const legendRows = wb.rowsByName['凡例'];
       const goalsRows = wb.rowsByName['戦略的フォーカス'];
+      const linksRows = wb.rowsByName['連携'];
 
       if (!commitRows) throw new Error('スプシに「コミットメントリスト」タブが見つかりません。bootstrap-sheet.gs を Apps Script で実行してタブを作成してください。');
 
@@ -1557,7 +1735,8 @@
       const records = rowsToObjects(commitRows);
       const tree = buildTree(records, deptOrder);
       const goals = parseGoals(goalsRows);
-      const layout = layoutNetwork(tree, deptOrder, deptColors, goals);
+      const linkSpec = parseLinks(linksRows);
+      const layout = layoutNetwork(tree, deptOrder, deptColors, goals, linkSpec);
       layout.deptLabels = deptLabels;
       renderNetwork(layout);
 
