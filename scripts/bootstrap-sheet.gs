@@ -16,7 +16,7 @@ const HEADERS = {
     'id', 'side', 'department', 'sub_department',
     'outcome', 'strategy', 'detail',
     'owner', 'due_date', 'progress',
-    'editor', 'updated_at'
+    'editor', 'updated_at', '連携'
   ],
   '凡例': ['key', 'label', 'color_hex', 'display_order'],
   '戦略的フォーカス': ['サイド', 'フォーカスラベル', '目標サブ', '大目標'],

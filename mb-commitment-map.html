@@ -796,6 +796,7 @@
     '進捗': 'progress', 'progress': 'progress',
     '編集者': 'editor', 'editor': 'editor',
     '更新日': 'updated_at', 'updated_at': 'updated_at',
+    '連携': 'links', '関連': 'links', 'links': 'links',
     // マイルストーン
     '作戦ID': 'strategy_id', 'strategy_id': 'strategy_id',
     '作戦名': 'strategy_label', 'strategy_label': 'strategy_label',
@@ -824,7 +825,7 @@
     'key', 'label', 'color_hex', 'display_order',
     'focus_label', 'goal_sub', 'goal_main',
     'name',
-    'from', 'to', 'style'
+    'from', 'to', 'style', 'links'
   ]);
   function _normalizeHeader(name) {
     const n = String(name || '').trim();
@@ -905,21 +906,54 @@
     return out;
   }
 
-  // 連携タブ: 部署をまたぐ関連を明示。
+  // 連携タブ + コミットメントリストの 連携 列から、cross-link spec を集める。
   // from/to は以下いずれか:
   //   - "C-xxx"                 → コミットメントリスト.id で detail を特定
   //   - "<dept>/<strategy>"     → strategy を特定 (両 side にヒットすれば両方繋ぐ)
   //   - "<dept>/<outcome>"      → outcome を特定 (fallback、上記に一致しない場合)
-  function parseLinks(rows) {
-    const objs = rowsToObjects(rows || []);
-    return objs
-      .filter(o => (o.from || '').trim() && (o.to || '').trim())
-      .map(o => ({
+  //
+  // records の各行が持つ links セル:
+  //   TARGET[|LABEL[|STYLE]]  を改行 or カンマ区切りで複数列挙可
+  //   例: "C-101\nC-102|PR連動\n本店/LP 転換率改善|発売月|dotted"
+  function parseLinks(linksTabRows, records) {
+    const out = [];
+    // 1. 連携タブ
+    const tabObjs = rowsToObjects(linksTabRows || []);
+    for (const o of tabObjs) {
+      if (!(o.from || '').trim() || !(o.to || '').trim()) continue;
+      out.push({
         from: o.from.trim(),
         to: o.to.trim(),
         label: (o.label || '').trim(),
         style: ((o.style || '').trim().toLowerCase() || 'dashed')
-      }));
+      });
+    }
+    // 2. コミットメントリストの 連携 列
+    for (const rec of (records || [])) {
+      const cell = (rec.links || '').trim();
+      if (!cell || !rec.id) continue;
+      // 改行 → まず行に分割、各行を , でさらに分割
+      const tokens = cell.split(/[\r\n]+/).flatMap(line => line.split(','))
+        .map(s => s.trim()).filter(Boolean);
+      for (const t of tokens) {
+        const parts = t.split('|').map(p => p.trim());
+        const target = parts[0];
+        if (!target) continue;
+        const label = parts[1] || '';
+        const style = (parts[2] || '').toLowerCase() || 'dashed';
+        out.push({ from: rec.id, to: target, label, style });
+      }
+    }
+    // 3. 同じ from-to (順不同) の重複を除去
+    const seen = new Set();
+    const dedup = [];
+    for (const l of out) {
+      const k = [l.from, l.to].sort().join('|||');
+      if (seen.has(k)) continue;
+      seen.add(k);
+      dedup.push(l);
+    }
+    return dedup;
   }
 
   // color_hex を厳格に #RGB / #RRGGBB のみ許可 (CSS injection 対策)
@@ -1735,7 +1769,7 @@
       const records = rowsToObjects(commitRows);
       const tree = buildTree(records, deptOrder);
       const goals = parseGoals(goalsRows);
-      const linkSpec = parseLinks(linksRows);
+      const linkSpec = parseLinks(linksRows, records);
       const layout = layoutNetwork(tree, deptOrder, deptColors, goals, linkSpec);
       layout.deptLabels = deptLabels;
       renderNetwork(layout);

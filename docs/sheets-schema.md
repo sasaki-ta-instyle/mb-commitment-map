@@ -26,8 +26,20 @@ Master スプシは Claude が新規作成する。以下がタブ構造と列�
 | J | `progress` | 列挙 | `未着手` / `進行中` / `完了` / `停止` |
 | K | `editor` | text | 最終編集者名（`_members` タブから dropdown、手で選択） |
 | L | `updated_at` | date | 手入力（触ったときに更新） |
+| M | `連携` | text | この行から部署をまたいで繋げたい先を列挙。書式は下記 |
 
 **重要**: HTML 側でのネットワーク図描画は `department` × `outcome` × `strategy` × `detail` を階層で `outcome → strategy → detail` にグルーピングして描く。同じ `outcome` は同じノードとしてマージされる（`side + department + outcome` の 3 タプルで一意）。
+
+**`連携` 列の書式** — 1 セルに複数書ける（改行 or カンマ区切り）:
+```
+C-101                                              最小: C-101 に破線を引く
+C-102|新商品PR連動                                   ラベル付き
+本店/LP 転換率改善|発売月のLP連動|dotted              ラベル + スタイル
+```
+- ターゲットは `C-xxx`（他行の id）または `<部署>/<作戦|成果>`（別タブ `連携` と同じ書式）
+- ラベルは hover 時のみ表示
+- スタイル: `dashed`（既定）/ `dotted` / `solid`
+- 別タブ `連携` と併用可（両方から集めて重複は自動除去）
 
 ---
 
