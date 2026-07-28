@@ -324,9 +324,11 @@
     stroke: rgba(255,255,255,.72);
     stroke-width: 1;
     filter: drop-shadow(0 1px 3px rgba(30,30,30,.10));
-    cursor: pointer;
+    cursor: default;
     transition: stroke 120ms ease, stroke-width 120ms ease, filter 180ms ease;
   }
+  .item-box.is-linked { cursor: pointer; }
+  .item-box.is-linked:hover { stroke-width: 1.6; }
   /* テキストを乗せる foreignObject が rect の hover を奪ってしまうのを防ぐ */
   #network-svg foreignObject { pointer-events: none; }
   .item-box:hover {
@@ -335,6 +337,12 @@
     stroke: color-mix(in srgb, var(--dept-color, #1E1E1E) 45%, #1E1E1E 55%);
     filter: drop-shadow(0 6px 16px rgba(30,30,30,.28));
   }
+  .pop-link {
+    color: var(--color-accent);
+    text-decoration: underline;
+    word-break: break-all;
+  }
+  .pop-link:hover { text-decoration: none; }
   .item-label {
     font-family: var(--font-sans);
     font-size: 9.5px;
@@ -772,6 +780,7 @@
     '編集者': 'editor', '最終編集者': 'editor', 'editor': 'editor',
     '更新日': 'updated_at', 'updated_at': 'updated_at',
     '連携': 'links', '関連': 'links', 'links': 'links',
+    'URL': 'url', 'url': 'url', 'リンク': 'url', 'ドキュメント': 'url', 'Notion': 'url', 'Drive': 'url',
     // マイルストーン
     '作戦ID': 'strategy_id', 'strategy_id': 'strategy_id',
     '作戦名': 'strategy_label', 'strategy_label': 'strategy_label',
@@ -800,7 +809,7 @@
     'key', 'label', 'color_hex', 'display_order',
     'focus_label', 'goal_sub', 'goal_main',
     'name',
-    'from', 'to', 'style', 'links'
+    'from', 'to', 'style', 'links', 'url'
   ]);
   function _normalizeHeader(name) {
     const n = String(name || '').trim();
@@ -1453,9 +1462,10 @@
     // --- Items (outcome / strategy / detail) — outcome が最も淡く、dept に向かって濃くなる ---
     layout.items.forEach(it => {
       const fill = withAlpha(it.color, it.kind === 'outcome' ? 0.40 : it.kind === 'strategy' ? 0.60 : 0.80);
+      const hasUrl = !!(it.rec && it.rec.url);
       $svg.appendChild(svgEl('rect', {
         x: it.x, y: it.y, width: it.w, height: it.h,
-        rx: 8, class: 'item-box', fill,
+        rx: 8, class: 'item-box' + (hasUrl ? ' is-linked' : ''), fill,
         'data-id': it.id,
         style: `--dept-color: ${it.color}`
       }));
@@ -1543,6 +1553,13 @@
       rect.addEventListener('mouseenter', (e) => { showPopover(e, item); _activateXLinks(id, true); });
       rect.addEventListener('mousemove', (e) => positionPopover(e));
       rect.addEventListener('mouseleave', () => { hidePopover(); _activateXLinks(id, false); });
+      const url = item.rec && item.rec.url;
+      if (url) {
+        rect.addEventListener('click', (e) => {
+          e.preventDefault();
+          window.open(url, '_blank', 'noopener,noreferrer');
+        });
+      }
     });
   }
 
@@ -1595,6 +1612,10 @@
       html += kvRaw('進捗', _progressBadge(item.rec.progress || '—'));
       html += kv('最終編集者', item.rec.editor || '—');
       html += kv('更新日', normalizeDate(item.rec.updated_at) || '—');
+      if (item.rec.url) {
+        const safeUrl = escapeHtml(item.rec.url);
+        html += kvRaw('リンク', `<a href="${safeUrl}" target="_blank" rel="noopener noreferrer" class="pop-link">${safeUrl}</a>`);
+      }
     } else {
       // 成果 / 作戦: 配下の詳細レコードを集計
       if (item.kind === 'strategy' && item.outcome) {
