@@ -762,8 +762,22 @@
     'キー': 'key', 'key': 'key',
     'ラベル': 'label', 'label': 'label',
     'カラー': 'color_hex', '色': 'color_hex', 'color_hex': 'color_hex',
-    '表示順': 'display_order', 'display_order': 'display_order'
+    '表示順': 'display_order', 'display_order': 'display_order',
+    // 大目標 / 戦略的フォーカス
+    'フォーカスラベル': 'focus_label', '列ラベル': 'focus_label', 'focus_label': 'focus_label',
+    '目標サブ': 'goal_sub', '戦略的フォーカス（1行目）': 'goal_sub', '戦略的フォーカス(1行目)': 'goal_sub', '1行目': 'goal_sub', 'goal_sub': 'goal_sub',
+    '目標': 'goal_main', '大目標': 'goal_main', '戦略的フォーカス（2行目）': 'goal_main', '戦略的フォーカス(2行目)': 'goal_main', '2行目': 'goal_main', 'goal_main': 'goal_main'
   };
+
+  // 既知フィールドのセット（ヘッダー行自動検出用。行頭に自由記述の装飾行があってもヘッダーを正しく拾えるようにする）
+  const KNOWN_HEADER_FIELDS = new Set([
+    'id', 'side', 'department', 'sub_department', 'outcome', 'strategy', 'detail',
+    'owner', 'due_date', 'progress', 'editor', 'updated_at',
+    'strategy_id', 'strategy_label', 'metric', 'unit',
+    'key', 'label', 'color_hex', 'display_order',
+    'focus_label', 'goal_sub', 'goal_main',
+    'name'
+  ]);
   function _normalizeHeader(name) {
     const n = String(name || '').trim();
     // YYYY-MM_target / YYYY-MM_actual や YYYY-MM_目標 / YYYY-MM_実績 は変換
@@ -774,11 +788,23 @@
     }
     return HEADER_ALIASES[n] || n;
   }
+  function _isHeaderRow(cells) {
+    // 1 セルでも既知フィールドが含まれていればヘッダー行とみなす
+    return cells.some(c => KNOWN_HEADER_FIELDS.has(_normalizeHeader(c)));
+  }
   function rowsToObjects(rows) {
     if (!rows || rows.length === 0) return [];
-    const header = (rows[0] || []).map(c => _normalizeHeader(c));
+    // 先頭から最大 5 行までスキャンして、既知フィールドを含む行をヘッダーとする
+    // （1 行目に自由記述の装飾行がある場合に対応）
+    let headerIdx = -1;
+    const maxScan = Math.min(rows.length, 5);
+    for (let i = 0; i < maxScan; i++) {
+      if (_isHeaderRow(rows[i] || [])) { headerIdx = i; break; }
+    }
+    if (headerIdx < 0) headerIdx = 0;   // 見つからなければ従来通り先頭行をヘッダー扱い
+    const header = (rows[headerIdx] || []).map(c => _normalizeHeader(c));
     const out = [];
-    for (let i = 1; i < rows.length; i++) {
+    for (let i = headerIdx + 1; i < rows.length; i++) {
       const r = rows[i] || [];
       if (r.every(c => !c || !c.toString().trim())) continue;
       const o = {};
@@ -809,6 +835,27 @@
     { key: 'CS',     color: '#E5484D', order: 3 },
     { key: '商品',   color: '#7CE2FE', order: 4 }
   ];
+
+  const DEFAULT_GOALS = {
+    定量: { focus_label: '戦略的フォーカス：定量', goal_sub: '2027 年 3 月末までに', goal_main: '利益 1 億円' },
+    定性: { focus_label: '戦略的フォーカス：定性', goal_sub: '大切な人に',            goal_main: '紹介したくなるブランド' }
+  };
+
+  function parseGoals(rows) {
+    const objs = rowsToObjects(rows || []);
+    const out = {
+      定量: Object.assign({}, DEFAULT_GOALS.定量),
+      定性: Object.assign({}, DEFAULT_GOALS.定性)
+    };
+    for (const o of objs) {
+      const side = (o.side === '定性') ? '定性' : (o.side === '定量') ? '定量' : null;
+      if (!side) continue;
+      if (o.focus_label) out[side].focus_label = o.focus_label;
+      if (o.goal_sub)    out[side].goal_sub    = o.goal_sub;
+      if (o.goal_main)   out[side].goal_main   = o.goal_main;
+    }
+    return out;
+  }
 
   // color_hex を厳格に #RGB / #RRGGBB のみ許可 (CSS injection 対策)
   function _validateHex(s) {
@@ -845,7 +892,8 @@
   }
 
   // Compute layout coordinates
-  function layoutNetwork(tree, deptOrder, deptColors) {
+  function layoutNetwork(tree, deptOrder, deptColors, goals) {
+    goals = goals || DEFAULT_GOALS;
     // Constants
     const W = 1800;
     const PAD_Y = 64;
@@ -857,7 +905,7 @@
     // 中央 dept を挟んで、成果/作戦/詳細/dept までのギャップを左右で完全に揃える
     // 0: 定量目標, 1: 成果L, 2: 作戦L, 3: 詳細L, 4: 部署, 5: 詳細R, 6: 作戦R, 7: 成果R, 8: 定性目標
     const cols = [
-      { x: 20,   w: 130, label: '戦略的フォーカス：定量', role: 'goal-q' },
+      { x: 20,   w: 130, label: goals.定量.focus_label, role: 'goal-q' },
       { x: 180,  w: 170, label: '成果', role: 'outcomeL' },
       { x: 380,  w: 170, label: '作戦', role: 'strategyL' },
       { x: 580,  w: 200, label: '詳細', role: 'detailL' },
@@ -865,7 +913,7 @@
       { x: 1020, w: 200, label: '詳細', role: 'detailR' },
       { x: 1250, w: 170, label: '作戦', role: 'strategyR' },
       { x: 1450, w: 170, label: '成果', role: 'outcomeR' },
-      { x: 1650, w: 130, label: '戦略的フォーカス：定性', role: 'goal-p' }
+      { x: 1650, w: 130, label: goals.定性.focus_label, role: 'goal-p' }
     ];
 
     // 各詳細に必要な高さを事前計算 (テキスト量に応じて可変)
@@ -1122,7 +1170,7 @@
       pushLink(from.x, from.y, deptX, deptY, d.color, 0.32);
     });
 
-    return { W, H: totalH, cols, deptBlocks, items, links, deptOrder, deptColors };
+    return { W, H: totalH, cols, deptBlocks, items, links, deptOrder, deptColors, goals };
   }
 
   function countDetails(deptOutcomes) {
@@ -1231,22 +1279,23 @@
     // --- Goal boxes ---
     const cQ = layout.cols[0], cP = layout.cols[8];
     const goalW = cQ.w, goalH = 120, goalY = (layout.H - goalH) / 2;
+    const goalsData = layout.goals || DEFAULT_GOALS;
     // Quantitative goal (left)
     const gQ = svgEl('rect', {
       x: cQ.x, y: goalY, width: goalW, height: goalH,
       rx: 18, class: 'goal-box'
     });
     $svg.appendChild(gQ);
-    $svg.appendChild(svgText(cQ.x + goalW/2, goalY + goalH/2 - 10, '2027 年 3 月末までに', { class: 'goal-sub' }));
-    $svg.appendChild(svgText(cQ.x + goalW/2, goalY + goalH/2 + 10, '利益 1 億円', { class: 'goal-label' }));
+    $svg.appendChild(svgText(cQ.x + goalW/2, goalY + goalH/2 - 10, goalsData.定量.goal_sub,  { class: 'goal-sub' }));
+    $svg.appendChild(svgText(cQ.x + goalW/2, goalY + goalH/2 + 10, goalsData.定量.goal_main, { class: 'goal-label' }));
     // Qualitative goal (right)
     const gP = svgEl('rect', {
       x: cP.x, y: goalY, width: goalW, height: goalH,
       rx: 18, class: 'goal-box qual'
     });
     $svg.appendChild(gP);
-    $svg.appendChild(svgText(cP.x + goalW/2, goalY + goalH/2 - 10, '大切な人に', { class: 'goal-sub' }));
-    $svg.appendChild(svgText(cP.x + goalW/2, goalY + goalH/2 + 10, '紹介したくなるブランド', { class: 'goal-label' }));
+    $svg.appendChild(svgText(cP.x + goalW/2, goalY + goalH/2 - 10, goalsData.定性.goal_sub,  { class: 'goal-sub' }));
+    $svg.appendChild(svgText(cP.x + goalW/2, goalY + goalH/2 + 10, goalsData.定性.goal_main, { class: 'goal-label' }));
 
     // --- Dept nodes (中央 1 セット) ---
     const deptCol = layout.cols[4];
@@ -1487,6 +1536,7 @@
       const commitRows = wb.rowsByName['コミットメントリスト'];
       const msRows = wb.rowsByName['マイルストーン'];
       const legendRows = wb.rowsByName['凡例'];
+      const goalsRows = wb.rowsByName['戦略的フォーカス'];
 
       if (!commitRows) throw new Error('スプシに「コミットメントリスト」タブが見つかりません。bootstrap-sheet.gs を Apps Script で実行してタブを作成してください。');
 
@@ -1506,7 +1556,8 @@
 
       const records = rowsToObjects(commitRows);
       const tree = buildTree(records, deptOrder);
-      const layout = layoutNetwork(tree, deptOrder, deptColors);
+      const goals = parseGoals(goalsRows);
+      const layout = layoutNetwork(tree, deptOrder, deptColors, goals);
       layout.deptLabels = deptLabels;
       renderNetwork(layout);
 

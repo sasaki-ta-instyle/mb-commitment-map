@@ -19,9 +19,15 @@ const HEADERS = {
     'editor', 'updated_at'
   ],
   '凡例': ['key', 'label', 'color_hex', 'display_order'],
+  '戦略的フォーカス': ['サイド', 'フォーカスラベル', '目標サブ', '大目標'],
   '_members': ['name'],
   '_progress': ['label']
 };
+
+const GOALS_ROWS = [
+  ['定量', '戦略的フォーカス：定量', '2027 年 3 月末までに', '利益 1 億円'],
+  ['定性', '戦略的フォーカス：定性', '大切な人に',            '紹介したくなるブランド']
+];
 
 const LEGEND_ROWS = [
   ['モール', 'マーケ:モール', '#39D353', 1],
@@ -99,6 +105,14 @@ function bootstrap() {
     legend.getRange(2, 1, LEGEND_ROWS.length, LEGEND_ROWS[0].length).setValues(LEGEND_ROWS);
   }
 
+  // 3b. 戦略的フォーカス
+  const goals = getOrCreateSheet(ss, '戦略的フォーカス');
+  writeHeader(goals, HEADERS['戦略的フォーカス']);
+  if (goals.getLastRow() < 2) {
+    goals.getRange(2, 1, GOALS_ROWS.length, GOALS_ROWS[0].length).setValues(GOALS_ROWS);
+  }
+  goals.setFrozenRows(1);
+
   // 4. _members
   const members = getOrCreateSheet(ss, '_members', true);
   writeHeader(members, HEADERS['_members']);
@@ -120,7 +134,7 @@ function bootstrap() {
   // 7. データ検証（プルダウン）を主タブに設定
   applyValidations(commit);
 
-  SpreadsheetApp.getUi().alert('bootstrap 完了。コミットメントリスト・マイルストーン・凡例・_members・_progress を初期化しました。');
+  SpreadsheetApp.getUi().alert('bootstrap 完了。コミットメントリスト・マイルストーン・凡例・戦略的フォーカス・_members・_progress を初期化しました。');
 }
 
 function getOrCreateSheet(ss, name, hidden) {
