@@ -821,20 +821,31 @@
     }
     return HEADER_ALIASES[n] || n;
   }
+  // タブごとの必須ペア (同一行に全部揃わないとヘッダー行と認めない)。
+  // requiredSets のいずれか 1 セットを満たせば OK。false-positive を避けるため、
+  // "既知フィールドが 1 個でもあればヘッダー" の緩さを廃止する。
+  const HEADER_REQUIRED_SETS = [
+    ['id', 'side', 'department'],       // コミットメントリスト
+    ['strategy_id', 'metric'],          // マイルストーン
+    ['key', 'color_hex'],               // 凡例
+    ['side', 'goal_main'],              // 戦略的フォーカス
+    ['from', 'to'],                     // 連携
+    ['name']                            // _members (単一列だが name しか候補が無い)
+  ];
   function _isHeaderRow(cells) {
-    // 1 セルでも既知フィールドが含まれていればヘッダー行とみなす
-    return cells.some(c => KNOWN_HEADER_FIELDS.has(_normalizeHeader(c)));
+    const set = new Set(cells.map(c => _normalizeHeader(c)));
+    return HEADER_REQUIRED_SETS.some(req => req.every(f => set.has(f)));
   }
   function rowsToObjects(rows) {
     if (!rows || rows.length === 0) return [];
-    // 先頭から最大 5 行までスキャンして、既知フィールドを含む行をヘッダーとする
-    // （1 行目に自由記述の装飾行がある場合に対応）
+    // 先頭から最大 5 行までスキャンして、必須ペアが揃った行をヘッダーとする。
+    // 装飾行 (自由記述) が先頭にあっても正しいヘッダー行を拾える。
     let headerIdx = -1;
     const maxScan = Math.min(rows.length, 5);
     for (let i = 0; i < maxScan; i++) {
       if (_isHeaderRow(rows[i] || [])) { headerIdx = i; break; }
     }
-    if (headerIdx < 0) headerIdx = 0;   // 見つからなければ従来通り先頭行をヘッダー扱い
+    if (headerIdx < 0) headerIdx = 0;   // 見つからなければ従来通り先頭行をヘッダー扱い (後方互換)
     const header = (rows[headerIdx] || []).map(c => _normalizeHeader(c));
     const out = [];
     for (let i = headerIdx + 1; i < rows.length; i++) {
@@ -845,6 +856,15 @@
       out.push(o);
     }
     return out;
+  }
+  // 必須列検証を同じ header auto-detect 経由で実行するためのヘルパー
+  function detectHeaderRow(rows) {
+    if (!rows || rows.length === 0) return [];
+    const maxScan = Math.min(rows.length, 5);
+    for (let i = 0; i < maxScan; i++) {
+      if (_isHeaderRow(rows[i] || [])) return (rows[i] || []).map(c => _normalizeHeader(c));
+    }
+    return (rows[0] || []).map(c => _normalizeHeader(c));
   }
 
   function normalizeDate(v) {
@@ -928,11 +948,12 @@
         out.push({ from: rec.id, to: target, label, style });
       }
     }
-    // 3. 同じ from-to (順不同) の重複を除去
+    // 3. 同じ from-to (順不同) + label + style の重複を除去
+    //    同 from-to で label / style が異なる指定は「別物」と見なして両方残す (silent drop 防止)
     const seen = new Set();
     const dedup = [];
     for (const l of out) {
-      const k = [l.from, l.to].sort().join('|||');
+      const k = [l.from, l.to].sort().join('|||') + '|||' + (l.label || '') + '|||' + (l.style || '');
       if (seen.has(k)) continue;
       seen.add(k);
       dedup.push(l);
@@ -944,6 +965,25 @@
   function _validateHex(s) {
     const m = /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.exec(String(s || '').trim());
     return m ? '#' + m[1] : '#888';
+  }
+
+  // 外部リンク URL の safelist。javascript: / data: / vbscript: 等を弾き、
+  // http / https / mailto のみ許可。スキーム欠落は https:// を補完してから検査。
+  // 戻り値: 安全な絶対 URL 文字列、または null。
+  const _ALLOWED_URL_PROTOCOLS = new Set(['http:', 'https:', 'mailto:']);
+  function safeExternalUrl(raw) {
+    const s = String(raw || '').trim();
+    if (!s) return null;
+    let candidate = s;
+    if (!/^([a-z][a-z0-9+.-]*:|\/\/)/i.test(candidate)) {
+      candidate = 'https://' + candidate;
+    } else if (/^\/\//.test(candidate)) {
+      candidate = 'https:' + candidate;
+    }
+    let u;
+    try { u = new URL(candidate); } catch (_) { return null; }
+    if (!_ALLOWED_URL_PROTOCOLS.has(u.protocol)) return null;
+    return u.href;
   }
 
   function parseLegend(rows) {
@@ -1462,8 +1502,9 @@
     // --- Items (outcome / strategy / detail) — outcome が最も淡く、dept に向かって濃くなる ---
     layout.items.forEach(it => {
       const fill = withAlpha(it.color, it.kind === 'outcome' ? 0.40 : it.kind === 'strategy' ? 0.60 : 0.80);
-      const rawUrl = (it.rec && it.rec.url ? String(it.rec.url).trim() : '');
-      const hasUrl = rawUrl.length > 0;
+      // 安全な URL のみ is-linked / click ハンドラ対象にする (javascript: 等は wall off)
+      const safeUrl = it.rec ? safeExternalUrl(it.rec.url) : null;
+      const hasUrl = !!safeUrl;
       $svg.appendChild(svgEl('rect', {
         x: it.x, y: it.y, width: it.w, height: it.h,
         rx: 8, class: 'item-box' + (hasUrl ? ' is-linked' : ''), fill,
@@ -1554,18 +1595,15 @@
       rect.addEventListener('mouseenter', (e) => { showPopover(e, item); _activateXLinks(id, true); });
       rect.addEventListener('mousemove', (e) => positionPopover(e));
       rect.addEventListener('mouseleave', () => { hidePopover(); _activateXLinks(id, false); });
-      const rawUrl = (item.rec && item.rec.url ? String(item.rec.url).trim() : '');
-      if (rawUrl) {
+      const safeUrl = item.rec ? safeExternalUrl(item.rec.url) : null;
+      if (safeUrl) {
         rect.addEventListener('click', (e) => {
           e.preventDefault();
-          // スキームが無ければ https:// を補う
-          let openUrl = rawUrl;
-          if (!/^([a-z][a-z0-9+.-]*:|\/\/)/i.test(openUrl)) {
-            openUrl = 'https://' + openUrl;
-          }
-          console.log('[commitment-map] open link:', openUrl);
-          window.open(openUrl, '_blank', 'noopener,noreferrer');
+          console.log('[commitment-map] open link:', safeUrl);
+          window.open(safeUrl, '_blank', 'noopener,noreferrer');
         });
+      } else if (item.rec && (item.rec.url || '').trim()) {
+        console.warn('[commitment-map] URL 拒否 (allowlist 外):', item.rec.url);
       }
     });
   }
@@ -1619,11 +1657,12 @@
       html += kvRaw('進捗', _progressBadge(item.rec.progress || '—'));
       html += kv('最終編集者', item.rec.editor || '—');
       html += kv('更新日', normalizeDate(item.rec.updated_at) || '—');
-      const popUrl = String(item.rec.url || '').trim();
-      if (popUrl) {
-        let hrefUrl = popUrl;
-        if (!/^([a-z][a-z0-9+.-]*:|\/\/)/i.test(hrefUrl)) hrefUrl = 'https://' + hrefUrl;
-        html += kvRaw('リンク', `<a href="${escapeHtml(hrefUrl)}" target="_blank" rel="noopener noreferrer" class="pop-link">${escapeHtml(popUrl)}</a>`);
+      const popRaw = String(item.rec.url || '').trim();
+      const popSafe = safeExternalUrl(popRaw);
+      if (popSafe) {
+        html += kvRaw('リンク', `<a href="${escapeHtml(popSafe)}" target="_blank" rel="noopener noreferrer" class="pop-link">${escapeHtml(popRaw)}</a>`);
+      } else if (popRaw) {
+        html += kv('リンク', '(未対応スキーム)');
       }
     } else {
       // 成果 / 作戦: 配下の詳細レコードを集計
@@ -1753,7 +1792,8 @@
 
       // 必須ヘッダー検証 (Sheets 列名タイポで silently 空値化されないように)
       // 日本語ヘッダーも受け付けるため normalize してから検査
-      const commitHeader = (commitRows[0] || []).map(c => _normalizeHeader(c));
+      // 装飾行を先頭に置いても検出できるよう、rowsToObjects と同じ auto-detect 経路を通す
+      const commitHeader = detectHeaderRow(commitRows);
       const missing = REQUIRED_COMMIT_COLS.filter(k => !commitHeader.includes(k));
       if (missing.length) {
         throw new Error(`「コミットメントリスト」タブに必須列が足りません: ${missing.join(', ')}`);
